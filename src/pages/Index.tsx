@@ -1,12 +1,84 @@
-/* Home Page - Replace this page layout, components, content, behavior with what you want and translate to the language of the user */
-const Index = () => {
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/stores/use-auth-store'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useToast } from '@/hooks/use-toast'
+
+export default function Index() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const login = useAuthStore((state) => state.login)
+  const navigate = useNavigate()
+  const { toast } = useToast()
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    setTimeout(() => {
+      setIsLoading(false)
+      if (email && password.length >= 6) {
+        login(email)
+        navigate('/dashboard')
+        toast({
+          title: 'Login realizado com sucesso',
+          description: 'Bem-vindo ao Vittorio Design.',
+        })
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Erro de autenticação',
+          description: 'Credenciais inválidas.',
+        })
+      }
+    }, 800)
+  }
+
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">
-        This is a example page ready to be rewritten with your own content
-      </h1>
+    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
+      <Card className="w-full max-w-md shadow-elevation border-0">
+        <CardHeader className="space-y-3 text-center pb-8">
+          <div className="mx-auto bg-primary text-primary-foreground w-16 h-16 flex items-center justify-center rounded-full mb-4">
+            <span className="font-serif text-3xl font-bold">V</span>
+          </div>
+          <CardTitle className="text-3xl font-serif tracking-tight">Vittorio Design</CardTitle>
+          <CardDescription>Painel Administrativo Restrito</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mail</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@vittorio.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-12"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-12"
+              />
+            </div>
+            <Button type="submit" className="w-full h-12 text-md" disabled={isLoading}>
+              {isLoading ? 'Autenticando...' : 'Entrar'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }
-
-export default Index
