@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 
-export default function Index() {
+export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -40,18 +40,24 @@ export default function Index() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md shadow-elevation border-0">
+      <Card className="w-full max-w-md shadow-lg border-border bg-card">
         <CardHeader className="space-y-3 text-center pb-8">
           <div className="mx-auto bg-primary text-primary-foreground w-16 h-16 flex items-center justify-center rounded-full mb-4">
             <span className="font-serif text-3xl font-bold">V</span>
           </div>
-          <CardTitle className="text-3xl font-serif tracking-tight">Vittorio Design</CardTitle>
-          <CardDescription>Painel Administrativo Restrito</CardDescription>
+          <CardTitle className="text-3xl font-serif tracking-tight text-foreground">
+            Vittorio Design
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Painel Administrativo Restrito
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email" className="text-foreground">
+                E-mail
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -59,21 +65,27 @@ export default function Index() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-12"
+                className="h-12 bg-background border-input"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-foreground">
+                Senha
+              </Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-12"
+                className="h-12 bg-background border-input"
               />
             </div>
-            <Button type="submit" className="w-full h-12 text-md" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full h-12 text-md font-semibold"
+              disabled={isLoading}
+            >
               {isLoading ? 'Autenticando...' : 'Entrar'}
             </Button>
           </form>

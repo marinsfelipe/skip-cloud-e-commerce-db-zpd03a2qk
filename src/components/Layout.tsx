@@ -47,13 +47,13 @@ export default function Layout() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!isAuthenticated && location.pathname !== '/') {
-      navigate('/')
+    if (!isAuthenticated && location.pathname !== '/admin') {
+      navigate('/admin')
     }
   }, [isAuthenticated, location.pathname, navigate])
 
   if (!isAuthenticated) {
-    return <Outlet />
+    return null
   }
 
   return (

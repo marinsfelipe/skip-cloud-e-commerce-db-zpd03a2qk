@@ -7,32 +7,32 @@
 @layer base {
   :root {
     /* Vittorio Design Theme - High-end, Minimalist */
-    --background: 210 20% 98%; /* #F9FAFB Soft Grey */
-    --foreground: 0 0% 10%; /* #1A1A1A Deep Black */
+    --background: 0 0% 17%; /* Grafite #2C2C2C */
+    --foreground: 0 0% 83%; /* Inox #D3D3D3 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card: 0 0% 20%;
+    --card-foreground: 0 0% 83%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover: 0 0% 17%;
+    --popover-foreground: 0 0% 83%;
 
-    --primary: 0 0% 10%; /* Deep Black */
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 64% 53%; /* Dourado #D4AF37 */
+    --primary-foreground: 0 0% 10%;
 
-    --secondary: 43 64% 53%; /* #D4AF37 Antique Gold */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 0 0% 25%;
+    --secondary-foreground: 0 0% 83%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 22%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 43 64% 90%; /* Light Gold */
+    --accent: 43 64% 53%;
     --accent-foreground: 0 0% 10%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 0 0% 28%;
+    --input: 0 0% 28%;
     --ring: 43 64% 53%; /* Gold Ring */
 
     --radius: 0.3rem; /* Sharper edges for premium feel */
@@ -54,33 +54,33 @@
   }
 
   .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
+    --background: 0 0% 17%;
+    --foreground: 0 0% 83%;
+    --card: 0 0% 20%;
+    --card-foreground: 0 0% 83%;
+    --popover: 0 0% 17%;
+    --popover-foreground: 0 0% 83%;
+    --primary: 43 64% 53%;
     --primary-foreground: 0 0% 10%;
-    --secondary: 43 64% 53%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
+    --secondary: 0 0% 25%;
+    --secondary-foreground: 0 0% 83%;
+    --muted: 0 0% 22%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 43 64% 53%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 0 0% 28%;
+    --input: 0 0% 28%;
     --ring: 43 64% 53%;
 
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 98%;
+    --sidebar-background: 0 0% 17%;
+    --sidebar-foreground: 0 0% 83%;
     --sidebar-primary: 43 64% 53%;
     --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 15%;
+    --sidebar-accent: 0 0% 22%;
+    --sidebar-accent-foreground: 0 0% 83%;
+    --sidebar-border: 0 0% 28%;
     --sidebar-ring: 43 64% 53%;
   }
 

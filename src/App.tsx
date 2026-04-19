@@ -3,7 +3,13 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import Layout from './components/Layout'
-import Index from './pages/Index'
+import PublicLayout from './components/PublicLayout'
+import AdminLogin from './pages/AdminLogin'
+import Home from './pages/public/Home'
+import Sobre from './pages/public/Sobre'
+import Linhas from './pages/public/Linhas'
+import Catalogo from './pages/public/Catalogo'
+import Contato from './pages/public/Contato'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import Promotions from './pages/Promotions'
@@ -18,7 +24,14 @@ const App = () => (
       <Toaster />
       <Sonner />
       <Routes>
-        <Route path="/" element={<Index />} />
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/sobre" element={<Sobre />} />
+          <Route path="/linhas" element={<Linhas />} />
+          <Route path="/catalogo" element={<Catalogo />} />
+          <Route path="/contato" element={<Contato />} />
+        </Route>
+        <Route path="/admin" element={<AdminLogin />} />
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/produtos" element={<Products />} />
