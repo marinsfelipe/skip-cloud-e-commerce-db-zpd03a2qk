@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-19T04:52:03.433Z",
+  "generatedAt": "2026-04-19T05:57:42.684Z",
   "collections": [
     {
       "name": "users",
@@ -110,6 +110,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "details",
+          "type": "editor",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -404,6 +410,59 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "blog_posts",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "slug",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "content",
+          "type": "editor",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "image",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "media"
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE UNIQUE INDEX idx_blog_posts_slug ON blog_posts (slug)"]
     }
   ]
 }

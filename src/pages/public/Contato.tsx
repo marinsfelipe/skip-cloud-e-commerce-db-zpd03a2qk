@@ -20,7 +20,7 @@ export default function Contato() {
   useSeo('Contato', 'Entre em contato com a Vittorio Design.', 'contato')
 
   const { toast } = useToast()
-  const { getPageContent, getSocialUrl } = useCMS()
+  const { getPageContent, getSocialUrl, getPageImage } = useCMS()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const intro = getPageContent(
@@ -41,9 +41,23 @@ export default function Contato() {
     }, 1500)
   }
 
+  const bgImage = getPageImage('contato', 'background')
+
   return (
-    <div className="py-20 bg-background min-h-screen">
-      <div className="container px-4">
+    <div className="relative py-20 min-h-screen">
+      {bgImage ? (
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${bgImage})` }}
+          />
+          <div className="absolute inset-0 bg-background/90 z-0" />
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-background z-0" />
+      )}
+
+      <div className="container relative z-10 px-4">
         <div className="text-center mb-16 animate-fade-in-up">
           <h1 className="text-4xl font-serif font-bold mb-4">Fale Conosco</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{intro}</p>

@@ -24,7 +24,7 @@ const DIFFERENTIATORS = [
 export default function Sobre() {
   useSeo('Sobre Nós', 'Conheça a Vittorio Design, nossa história e diferenciais.', 'sobre')
 
-  const { getPageContent } = useCMS()
+  const { getPageContent, getPageImage } = useCMS()
   const intro = getPageContent(
     'sobre',
     'intro',
@@ -44,9 +44,20 @@ export default function Sobre() {
 
         <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
           <div className="relative aspect-video rounded-xl overflow-hidden bg-muted border border-border group">
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-lg">
-              [Imagem da Fábrica / Operação]
-            </div>
+            {getPageImage('sobre', 'main_content') ? (
+              <img
+                src={getPageImage('sobre', 'main_content')!}
+                alt="Operação Vittorio Design"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-lg">
+                <img
+                  src="https://img.usecurling.com/p/800/600?q=factory&color=black"
+                  className="w-full h-full object-cover opacity-50"
+                />
+              </div>
+            )}
           </div>
           <div>
             <h2 className="text-3xl font-serif font-bold mb-6">Nossos Diferenciais Técnicos</h2>

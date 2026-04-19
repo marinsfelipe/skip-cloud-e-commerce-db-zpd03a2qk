@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import pb from '@/lib/pocketbase/client'
 import { useToast } from '@/hooks/use-toast'
+import { MediaSelector } from '@/components/MediaSelector'
+import { Button } from '@/components/ui/button'
 
 export default function SettingsPage() {
   const [socialLinks, setSocialLinks] = useState<any[]>([])
@@ -16,7 +18,7 @@ export default function SettingsPage() {
     try {
       const s = await pb.collection('social_links').getFullList()
       setSocialLinks(s)
-      const p = await pb.collection('pages').getFullList()
+      const p = await pb.collection('pages').getFullList({ expand: 'image' })
       setPages(p)
       const st = await pb
         .collection('settings')
@@ -51,6 +53,16 @@ export default function SettingsPage() {
       loadData()
     } catch (err) {
       toast({ variant: 'destructive', title: 'Erro ao atualizar' })
+    }
+  }
+
+  const handleUpdatePageImage = async (id: string, imageId: string) => {
+    try {
+      await pb.collection('pages').update(id, { image: imageId })
+      toast({ title: 'Imagem atualizada' })
+      loadData()
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erro ao atualizar imagem' })
     }
   }
 
@@ -149,6 +161,24 @@ export default function SettingsPage() {
                   }}
                   className="min-h-[120px]"
                 />
+              ) : p.type === 'image' ? (
+                <div className="flex items-center gap-4">
+                  {p.expand?.image ? (
+                    <img
+                      src={pb.files.getURL(p.expand.image, p.expand.image.file)}
+                      className="h-24 w-32 object-cover rounded border"
+                      alt="Imagem da Página"
+                    />
+                  ) : (
+                    <div className="h-24 w-32 bg-muted rounded border flex items-center justify-center text-xs text-muted-foreground">
+                      Sem imagem
+                    </div>
+                  )}
+                  <MediaSelector
+                    selectedId={p.image}
+                    onSelect={(id) => handleUpdatePageImage(p.id, id)}
+                  />
+                </div>
               ) : (
                 <Input
                   defaultValue={p.content}

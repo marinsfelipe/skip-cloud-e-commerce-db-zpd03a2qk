@@ -1,69 +1,76 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import pb from '@/lib/pocketbase/client'
-import { useRealtime } from './use-realtime'
 
 export function useCMS() {
   const [pages, setPages] = useState<any[]>([])
-  const [socialLinks, setSocialLinks] = useState<any[]>([])
   const [settings, setSettings] = useState<any[]>([])
+  const [socials, setSocials] = useState<any[]>([])
 
-  const load = async () => {
+  const loadData = useCallback(async () => {
     try {
-      const [p, s, st] = await Promise.all([
-        pb.collection('pages').getFullList({ expand: 'image' }),
-        pb.collection('social_links').getFullList(),
-        pb.collection('settings').getFullList(),
+      const [p, st, soc] = await Promise.all([
+        pb
+          .collection('pages')
+          .getFullList({ expand: 'image' })
+          .catch(() => []),
+        pb
+          .collection('settings')
+          .getFullList()
+          .catch(() => []),
+        pb
+          .collection('social_links')
+          .getFullList()
+          .catch(() => []),
       ])
       setPages(p)
-      setSocialLinks(s)
       setSettings(st)
-    } catch (e) {
-      console.error(e)
+      setSocials(soc)
+    } catch (err) {
+      console.error(err)
     }
-  }
-
-  useEffect(() => {
-    load()
   }, [])
 
-  useRealtime('pages', load)
-  useRealtime('social_links', load)
-  useRealtime('settings', load)
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
-  const getPageContent = (page: string, section: string, defaultText: string = '') => {
-    const item = pages.find((p) => p.page_name === page && p.section_name === section)
-    return item ? item.content : defaultText
+  const getPageContent = (pageName: string, sectionName: string, fallback: string = '') => {
+    const p = pages.find((x) => x.page_name === pageName && x.section_name === sectionName)
+    return p?.content || fallback
   }
 
-  const getPageImage = (page: string, section: string) => {
-    const item = pages.find((p) => p.page_name === page && p.section_name === section)
-    return item?.expand?.image ? pb.files.getURL(item.expand.image, item.expand.image.file) : null
-  }
-
-  const getSetting = (key: string) => {
-    const item = settings.find((s) => s.key === key)
-    if (!item) return null
-    if (item.file) {
-      return pb.files.getURL(item, item.file)
+  const getPageImage = (pageName: string, sectionName: string) => {
+    const p = pages.find((x) => x.page_name === pageName && x.section_name === sectionName)
+    if (p?.expand?.image?.file) {
+      return pb.files.getURL(p.expand.image, p.expand.image.file)
     }
-    return item.value
+    return null
+  }
+
+  const getSetting = (key: string, fallback: string = '') => {
+    const s = settings.find((x) => x.key === key)
+    if (s?.file) {
+      return pb.files.getURL(s, s.file)
+    }
+    return s?.value || fallback
   }
 
   const getSocialUrl = (platform: string) => {
-    const item = socialLinks.find(
-      (s) => s.platform.toLowerCase() === platform.toLowerCase() && s.is_active,
-    )
-    return item ? item.url : null
+    const s = socials.find((x) => x.platform === platform && x.is_active)
+    return s?.url || ''
   }
+
+  const getAllSocials = () => socials.filter((s) => s.is_active)
 
   return {
     pages,
-    socialLinks,
     settings,
+    socials,
     getPageContent,
     getPageImage,
     getSetting,
     getSocialUrl,
-    load,
+    getAllSocials,
+    loadData,
   }
 }
