@@ -25,7 +25,9 @@ export default function Media() {
     try {
       const records = await pb.collection('media').getFullList({ sort: '-created' })
       setImages(records)
-    } catch (err) {}
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   useEffect(() => {

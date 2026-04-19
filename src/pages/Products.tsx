@@ -57,7 +57,9 @@ export default function Products() {
     try {
       const records = await pb.collection('products').getFullList({ sort: '-created' })
       setProducts(records)
-    } catch (err) {}
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   useEffect(() => {

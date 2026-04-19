@@ -122,8 +122,8 @@ migrate(
       listRule: "@request.auth.id != ''",
       viewRule: "@request.auth.id != ''",
       createRule: "@request.auth.id != ''",
-      updateRule: 'null',
-      deleteRule: 'null',
+      updateRule: null,
+      deleteRule: null,
       fields: [
         { name: 'action', type: 'text', required: true },
         { name: 'user', type: 'relation', collectionId: '_pb_users_auth_', maxSelect: 1 },
