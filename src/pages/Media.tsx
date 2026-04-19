@@ -1,13 +1,59 @@
+import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Upload, ShieldAlert } from 'lucide-react'
+import { Upload, ShieldAlert, Filter, FileUp } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
+
+const CATEGORIES = ['Todas', 'Produtos', 'Promoções', 'Blog', 'Páginas', 'Outros']
 
 export default function Media() {
-  // Generate fake images
+  const [category, setCategory] = useState('Todas')
+  const { toast } = useToast()
+
   const images = Array.from({ length: 8 }).map(
     (_, i) => `https://img.usecurling.com/p/400/400?q=luxury%20furniture&seed=${i}`,
   )
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 10) {
+      toast({
+        variant: 'destructive',
+        title: 'Limite Excedido',
+        description: 'Você pode enviar no máximo 10 imagens por vez.',
+      })
+      return
+    }
+    if (files && files.length > 0) {
+      toast({ title: 'Upload iniciado', description: `Enviando ${files.length} arquivos...` })
+    }
+  }
+
+  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          variant: 'destructive',
+          title: 'Arquivo muito grande',
+          description: 'O catálogo PDF deve ter no máximo 50MB.',
+        })
+        return
+      }
+      toast({
+        title: 'Catálogo Atualizado',
+        description: `${file.name} foi definido como o catálogo oficial.`,
+      })
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -20,27 +66,57 @@ export default function Media() {
 
       <Tabs defaultValue="images" className="w-full">
         <TabsList>
-          <TabsTrigger value="images">Imagens (Produtos/Blog)</TabsTrigger>
+          <TabsTrigger value="images">Galeria de Imagens</TabsTrigger>
           <TabsTrigger value="catalog">Catálogo PDF Seguro</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="images" className="mt-6">
-          <div className="flex justify-end mb-4">
-            <Button>
-              <Upload className="mr-2 h-4 w-4" /> Fazer Upload
-            </Button>
+        <TabsContent value="images" className="mt-6 space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <label className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors h-10 px-4 py-2 cursor-pointer shadow-sm">
+              <Upload className="mr-2 h-4 w-4" /> Upload em Lote (Máx 10)
+              <input
+                type="file"
+                multiple
+                accept="image/jpeg, image/png, image/webp"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+            </label>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {images.map((src, i) => (
-              <Card key={i} className="overflow-hidden group cursor-pointer border-0 shadow-sm">
+              <Card
+                key={i}
+                className="overflow-hidden group cursor-pointer border-0 shadow-sm relative"
+              >
                 <CardContent className="p-0 relative aspect-square">
                   <img
                     src={src}
-                    alt="Produto"
+                    alt="Mídia"
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="text-white font-medium text-sm">Ver Detalhes</span>
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-center">
+                    <span className="text-white font-medium text-sm mb-2">
+                      Editar Metadados (Alt)
+                    </span>
+                    <span className="text-white/70 text-xs">JPG • 1.2MB</span>
                   </div>
                 </CardContent>
               </Card>
@@ -61,24 +137,54 @@ export default function Media() {
                 </div>
               </div>
 
-              <div
-                className="relative bg-muted rounded-lg border w-full aspect-[1/1.4] max-w-2xl mx-auto overflow-hidden pdf-secure-container flex items-center justify-center"
-                onContextMenu={(e) => e.preventDefault()}
-              >
-                {/* Fake PDF Layer */}
-                <div className="absolute inset-0 bg-white shadow-inner m-4 flex flex-col items-center justify-center text-center p-8 opacity-90 pointer-events-none">
-                  <h1 className="text-4xl font-serif mb-4">Vittorio Design</h1>
-                  <h2 className="text-2xl font-light text-muted-foreground">Coleção 2026</h2>
-                  <div className="mt-12 w-32 h-1 bg-secondary"></div>
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div
+                  className="relative bg-muted rounded-lg border w-full aspect-[1/1.4] max-w-sm mx-auto overflow-hidden pdf-secure-container flex items-center justify-center shadow-lg"
+                  onContextMenu={(e) => e.preventDefault()}
+                >
+                  <div className="absolute inset-0 bg-white shadow-inner m-4 flex flex-col items-center justify-center text-center p-8 opacity-90 pointer-events-none">
+                    <h1 className="text-3xl font-serif mb-4">Vittorio Design</h1>
+                    <h2 className="text-xl font-light text-muted-foreground">Coleção 2026</h2>
+                    <div className="mt-8 w-24 h-1 bg-secondary"></div>
+                  </div>
+                  <div className="absolute inset-0 bg-transparent z-50"></div>
                 </div>
-                {/* Anti-interaction overlay */}
-                <div className="absolute inset-0 bg-transparent z-50"></div>
-              </div>
 
-              <div className="flex justify-center mt-6">
-                <Button variant="outline">
-                  <Upload className="mr-2 h-4 w-4" /> Atualizar PDF
-                </Button>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Catálogo Atual</h3>
+                    <div className="space-y-1 text-sm text-muted-foreground bg-muted p-4 rounded-md">
+                      <p>
+                        <strong>Arquivo:</strong> vittorio-catalogo-2026-v2.pdf
+                      </p>
+                      <p>
+                        <strong>Tamanho:</strong> 24.5 MB
+                      </p>
+                      <p>
+                        <strong>Atualizado em:</strong> 15 Abr 2026, 14:30
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <label className="border-2 border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer text-center">
+                      <FileUp className="h-8 w-8 text-primary mb-2" />
+                      <span className="font-medium text-foreground mb-1">
+                        Substituir Catálogo PDF
+                      </span>
+                      <span className="text-xs text-muted-foreground">Tamanho máximo: 50MB</span>
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={handlePdfUpload}
+                      />
+                    </label>
+                    <Button variant="outline" className="w-full">
+                      Baixar Cópia (Apenas Admin)
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

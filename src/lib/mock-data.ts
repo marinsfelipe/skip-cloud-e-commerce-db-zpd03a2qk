@@ -1,133 +1,110 @@
-export const MOCK_PRODUCTS = [
-  {
-    id: '1',
-    name: 'Poltrona Florence',
-    line: 'Speciale',
-    price: 4500,
-    is_deleted: false,
-    stock: 12,
-  },
-  {
-    id: '2',
-    name: 'Mesa de Jantar Milano',
-    line: 'Strongest',
-    price: 12800,
-    is_deleted: false,
-    stock: 5,
-  },
-  {
-    id: '3',
-    name: 'Sofá Chesterfield Velvet',
-    line: 'Speciale',
-    price: 9200,
-    is_deleted: false,
-    stock: 3,
-  },
-  { id: '4', name: 'Cadeira Bauhaus', line: 'Essenziale', price: 1200, is_deleted: true, stock: 0 },
-  {
-    id: '5',
-    name: 'Luminária Pendente Lusso',
-    line: 'Luce',
-    price: 3400,
-    is_deleted: false,
-    stock: 8,
-  },
-]
-
 export const MOCK_PROMOTIONS = [
   {
     id: '1',
-    name: 'Black Friday Antecipada',
-    discount: '20%',
+    name: 'Black Friday VIP',
+    discount: 20,
     start_date: '2026-11-01T00:00:00Z',
     end_date: '2026-11-30T23:59:59Z',
     is_active: true,
+    is_deleted: false,
   },
   {
     id: '2',
-    name: 'Especial Dia das Mães',
-    discount: '15%',
-    start_date: '2026-05-01T00:00:00Z',
-    end_date: '2026-05-15T23:59:59Z',
+    name: 'Summer Collection',
+    discount: 15,
+    start_date: '2026-01-01T00:00:00Z',
+    end_date: '2026-02-28T23:59:59Z',
     is_active: false,
+    is_deleted: false,
+  },
+]
+
+export const MOCK_PRODUCTS = [
+  {
+    id: '1',
+    code: 'VD.EX.VTR.001.00',
+    name: 'Forno Inox Pro',
+    line: 'Speciale',
+    price: 15000,
+    stock: 12,
+    is_deleted: false,
+  },
+  {
+    id: '2',
+    code: 'VD.EX.VTR.002.00',
+    name: 'Geladeira Duplex',
+    line: 'Fredda',
+    price: 25000,
+    stock: 5,
+    is_deleted: false,
+  },
+  {
+    id: '3',
+    code: 'VD.EX.VTR.003.00',
+    name: 'Cooktop 5 Bocas',
+    line: 'Cucinare',
+    price: 8500,
+    stock: 20,
+    is_deleted: false,
   },
 ]
 
 export const MOCK_POSTS = [
   {
     id: '1',
-    title: 'Tendências de Design de Interiores 2026',
+    title: 'Tendências 2026',
+    date: '2026-04-10T10:00:00Z',
     status: 'Published',
-    date: '2026-04-10T14:30:00Z',
+    is_deleted: false,
   },
   {
     id: '2',
-    title: 'Como escolher a poltrona perfeita',
+    title: 'Aço Inox na Alta Costura',
+    date: '2026-04-15T14:30:00Z',
     status: 'Draft',
-    date: '2026-04-18T09:00:00Z',
+    is_deleted: false,
   },
 ]
 
 export const MOCK_AUDIT_LOGS = [
   {
-    id: '101',
+    id: '1',
+    timestamp: '2026-04-19T10:00:00Z',
+    user: 'Felipe',
+    action: 'CREATE',
+    entity: 'Product',
+  },
+  {
+    id: '2',
+    timestamp: '2026-04-18T15:20:00Z',
     user: 'Felipe',
     action: 'UPDATE',
-    entity: 'Product',
-    timestamp: '2026-04-19T10:15:00Z',
-  },
-  {
-    id: '102',
-    user: 'Editor 1',
-    action: 'CREATE',
-    entity: 'Post',
-    timestamp: '2026-04-19T09:30:00Z',
-  },
-  {
-    id: '103',
-    user: 'Felipe',
-    action: 'SOFT_DELETE',
-    entity: 'Product',
-    timestamp: '2026-04-18T16:45:00Z',
-  },
-]
-
-export const MOCK_API_LOGS = [
-  {
-    id: '201',
-    endpoint: '/api/v1/products',
-    method: 'GET',
-    status: 200,
-    latency: '45ms',
-    ip: '192.168.1.1',
-    timestamp: '2026-04-19T10:16:00Z',
-  },
-  {
-    id: '202',
-    endpoint: '/api/v1/promotions',
-    method: 'GET',
-    status: 200,
-    latency: '32ms',
-    ip: '192.168.1.1',
-    timestamp: '2026-04-19T10:16:05Z',
-  },
-  {
-    id: '203',
-    endpoint: '/api/v1/products',
-    method: 'GET',
-    status: 429,
-    latency: '12ms',
-    ip: '10.0.0.5',
-    timestamp: '2026-04-19T10:17:00Z',
+    entity: 'Promotion',
   },
 ]
 
 export const CHART_DATA = [
-  { name: 'Seg', requests: 4000 },
-  { name: 'Ter', requests: 3000 },
-  { name: 'Qua', requests: 5000 },
-  { name: 'Qui', requests: 4500 },
-  { name: 'Sex', requests: 6000 },
-  { name: 'Sáb', requests: 8000 },
-  { name: 'Dom', requests: 7500 },
+  { name: '00:00', requests: 120 },
+  { name: '04:00', requests: 80 },
+  { name: '08:00', requests: 450 },
+  { name: '12:00', requests: 900 },
+  { name: '16:00', requests: 750 },
+  { name: '20:00', requests: 300 },
+]
+
+export const MOCK_API_LOGS = [
+  {
+    id: '1',
+    timestamp: '2026-04-19T10:00:00Z',
+    method: 'GET',
+    endpoint: '/api/v1/products',
+    status: 200,
+    latency: '45ms',
+    ip: '192.168.1.1',
+  },
+]
+
+export const MOCK_USERS = [
+  { id: '1', name: 'Felipe', email: 'admin@vittorio.com', role: 'Admin', is_active: true },
+  { id: '2', name: 'Editor 1', email: 'editor1@vittorio.com', role: 'Editor', is_active: true },
 ]

@@ -16,6 +16,7 @@ import Promotions from './pages/Promotions'
 import Blog from './pages/Blog'
 import Media from './pages/Media'
 import Logs from './pages/Logs'
+import UsersPage from './pages/Users'
 import NotFound from './pages/NotFound'
 
 const App = () => (
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/blog" element={<Blog />} />
           <Route path="/midia" element={<Media />} />
           <Route path="/logs" element={<Logs />} />
+          <Route path="/usuarios" element={<UsersPage />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

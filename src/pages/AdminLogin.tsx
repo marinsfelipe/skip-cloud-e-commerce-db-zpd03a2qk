@@ -38,6 +38,13 @@ export default function AdminLogin() {
     }, 800)
   }
 
+  const handleForgot = () => {
+    toast({
+      title: 'Recuperação de Senha',
+      description: 'Instruções enviadas para o e-mail informado.',
+    })
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-md shadow-lg border-border bg-card">
@@ -69,9 +76,18 @@ export default function AdminLogin() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-foreground">
-                Senha
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-foreground">
+                  Senha
+                </Label>
+                <button
+                  type="button"
+                  onClick={handleForgot}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Esqueci a senha
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"

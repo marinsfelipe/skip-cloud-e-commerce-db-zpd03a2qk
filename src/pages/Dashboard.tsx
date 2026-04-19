@@ -1,52 +1,79 @@
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Package, Tag, FileText, Activity } from 'lucide-react'
+import { Package, Tag, FileText, Activity, ImageIcon } from 'lucide-react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { Line, LineChart, XAxis, YAxis } from 'recharts'
 import { CHART_DATA, MOCK_AUDIT_LOGS } from '@/lib/mock-data'
 import { formatDate } from '@/lib/format'
 
 export default function Dashboard() {
+  const [stats, setStats] = useState({
+    products: 0,
+    promotions: 0,
+    posts: 0,
+    images: 0,
+    catalog: 'Carregando',
+  })
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setStats({
+        products: 142,
+        promotions: 3,
+        posts: 24,
+        images: 850,
+        catalog: 'V2 (24.5MB)',
+      })
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card className="border-l-4 border-l-secondary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Produtos Ativos</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-serif">142</div>
-            <p className="text-xs text-muted-foreground">+4 adicionados este mês</p>
+            <div className="text-2xl font-bold font-serif">{stats.products}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Promoções Ativas</CardTitle>
+            <CardTitle className="text-sm font-medium">Promoções</CardTitle>
             <Tag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-serif">3</div>
-            <p className="text-xs text-muted-foreground">1 terminando em breve</p>
+            <div className="text-2xl font-bold font-serif">{stats.promotions}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Posts Publicados</CardTitle>
+            <CardTitle className="text-sm font-medium">Posts Blog</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-serif">24</div>
-            <p className="text-xs text-muted-foreground">2 rascunhos pendentes</p>
+            <div className="text-2xl font-bold font-serif">{stats.posts}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Req. API (24h)</CardTitle>
+            <CardTitle className="text-sm font-medium">Imagens</CardTitle>
+            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-serif">{stats.images}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Catálogo PDF</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-serif">8.4K</div>
-            <p className="text-xs text-muted-foreground">Dentro do limite de taxa</p>
+            <div className="text-2xl font-bold font-serif">{stats.catalog}</div>
           </CardContent>
         </Card>
       </div>

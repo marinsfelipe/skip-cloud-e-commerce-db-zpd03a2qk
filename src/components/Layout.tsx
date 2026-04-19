@@ -7,7 +7,7 @@ import {
   ImageIcon,
   ScrollText,
   LogOut,
-  Menu,
+  Users as UsersIcon,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -31,6 +31,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useEffect } from 'react'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 
 const MENU_ITEMS = [
   { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard' },
@@ -38,6 +46,7 @@ const MENU_ITEMS = [
   { title: 'Promoções', icon: Tag, url: '/promocoes' },
   { title: 'Blog', icon: FileText, url: '/blog' },
   { title: 'Mídia', icon: ImageIcon, url: '/midia' },
+  { title: 'Usuários', icon: UsersIcon, url: '/usuarios' },
   { title: 'Logs', icon: ScrollText, url: '/logs' },
 ]
 
@@ -54,6 +63,13 @@ export default function Layout() {
 
   if (!isAuthenticated) {
     return null
+  }
+
+  const activeItem = MENU_ITEMS.find((i) => i.url === location.pathname)
+
+  const handleLogout = () => {
+    fetch('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
+    logout()
   }
 
   return (
@@ -93,8 +109,25 @@ export default function Layout() {
           <header className="h-16 flex items-center justify-between px-6 bg-background border-b shadow-sm shrink-0">
             <div className="flex items-center gap-4">
               <SidebarTrigger className="md:hidden" />
-              <h1 className="text-xl font-serif font-semibold hidden sm:block">
-                {MENU_ITEMS.find((i) => i.url === location.pathname)?.title || 'Painel'}
+              <Breadcrumb className="hidden md:flex">
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                      <Link to="/dashboard">Admin</Link>
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  {activeItem && activeItem.url !== '/dashboard' && (
+                    <>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>{activeItem.title}</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </>
+                  )}
+                </BreadcrumbList>
+              </Breadcrumb>
+              <h1 className="text-xl font-serif font-semibold md:hidden">
+                {activeItem?.title || 'Painel'}
               </h1>
             </div>
 
@@ -104,7 +137,7 @@ export default function Layout() {
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10 border border-primary/10">
                       <AvatarFallback className="bg-secondary text-secondary-foreground font-serif">
-                        {user?.name.charAt(0)}
+                        {user?.name.charAt(0) || 'A'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -114,7 +147,10 @@ export default function Layout() {
                     <p className="text-sm font-medium leading-none">{user?.name}</p>
                     <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="text-destructive cursor-pointer"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sair</span>
                   </DropdownMenuItem>
