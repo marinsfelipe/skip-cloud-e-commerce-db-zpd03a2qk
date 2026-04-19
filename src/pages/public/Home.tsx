@@ -36,7 +36,7 @@ export default function Home() {
               className="w-full h-full object-cover opacity-40"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-b from-card to-background" />
+            <div className="w-full h-full bg-gradient-to-b from-card to-background text-[#faf9ed]" />
           )}
           {isAuthenticated && (
             <ImageUploadOverlay
@@ -116,7 +116,7 @@ export default function Home() {
       </section>
 
       {/* Featured Lines Section */}
-      <section className="py-24 bg-card/50">
+      <section className="py-24 bg-card/50 text-[#f9f9f9]">
         <div className="container px-4">
           <div className="flex items-end justify-between mb-12">
             <div>
