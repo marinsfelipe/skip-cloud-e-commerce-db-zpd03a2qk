@@ -124,9 +124,22 @@ export default function PublicLayout() {
       <footer className="bg-card border-t border-border py-12">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <div className="font-serif text-2xl font-bold text-primary tracking-widest">
-              VITTORIO
-            </div>
+            <Link
+              to="/"
+              className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
+            >
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt="Vittorio Design Logo"
+                  className="h-12 w-auto max-w-[200px] object-contain"
+                />
+              ) : (
+                <div className="font-serif text-2xl font-bold text-primary tracking-widest">
+                  VITTORIO
+                </div>
+              )}
+            </Link>
             <p className="text-muted-foreground text-sm">{footerAbout}</p>
           </div>
           <div>
