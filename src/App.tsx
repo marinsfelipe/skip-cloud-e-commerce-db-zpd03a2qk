@@ -19,6 +19,7 @@ import Media from './pages/Media'
 import Logs from './pages/Logs'
 import UsersPage from './pages/Users'
 import SettingsPage from './pages/SettingsPage'
+import CmsLinhas from './pages/CmsLinhas'
 import NotFound from './pages/NotFound'
 import { AuthProvider } from './hooks/use-auth'
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/logs" element={<Logs />} />
             <Route path="/usuarios" element={<UsersPage />} />
             <Route path="/configuracoes" element={<SettingsPage />} />
+            <Route path="/cms/linhas" element={<CmsLinhas />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

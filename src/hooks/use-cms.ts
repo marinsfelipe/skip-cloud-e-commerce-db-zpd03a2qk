@@ -10,7 +10,7 @@ export function useCMS() {
   const load = async () => {
     try {
       const [p, s, st] = await Promise.all([
-        pb.collection('pages').getFullList(),
+        pb.collection('pages').getFullList({ expand: 'image' }),
         pb.collection('social_links').getFullList(),
         pb.collection('settings').getFullList(),
       ])
@@ -35,6 +35,11 @@ export function useCMS() {
     return item ? item.content : defaultText
   }
 
+  const getPageImage = (page: string, section: string) => {
+    const item = pages.find((p) => p.page_name === page && p.section_name === section)
+    return item?.expand?.image ? pb.files.getURL(item.expand.image, item.expand.image.file) : null
+  }
+
   const getSetting = (key: string) => {
     const item = settings.find((s) => s.key === key)
     if (!item) return null
@@ -51,5 +56,14 @@ export function useCMS() {
     return item ? item.url : null
   }
 
-  return { pages, socialLinks, settings, getPageContent, getSetting, getSocialUrl, load }
+  return {
+    pages,
+    socialLinks,
+    settings,
+    getPageContent,
+    getPageImage,
+    getSetting,
+    getSocialUrl,
+    load,
+  }
 }

@@ -57,7 +57,7 @@ export default function Linhas() {
     'linhas vittorio, strongest, cucinare, fredda, aprezzo, speciale, visione, perfecto gusto, ideale, progetto',
   )
 
-  const { getPageContent } = useCMS()
+  const { getPageContent, getPageImage } = useCMS()
 
   return (
     <div className="py-20 bg-background min-h-screen">
@@ -82,9 +82,22 @@ export default function Linhas() {
               className="bg-card border-border overflow-hidden hover:border-primary transition-colors group animate-fade-in-up"
               style={{ animationDelay: `${idx * 50}ms` }}
             >
-              <div className="aspect-[4/3] bg-muted relative flex items-center justify-center text-muted-foreground">
-                <span className="font-serif text-2xl opacity-20">{line.name}</span>
-              </div>
+              {(() => {
+                const imgUrl = getPageImage('linhas', `desc_${line.id}`)
+                return imgUrl ? (
+                  <div className="aspect-[4/3] relative overflow-hidden bg-muted">
+                    <img
+                      src={imgUrl}
+                      alt={line.name}
+                      className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
+                    />
+                  </div>
+                ) : (
+                  <div className="aspect-[4/3] bg-muted relative flex items-center justify-center text-muted-foreground">
+                    <span className="font-serif text-2xl opacity-20">{line.name}</span>
+                  </div>
+                )
+              })()}
               <CardHeader>
                 <CardTitle className="font-serif text-2xl text-primary">{line.name}</CardTitle>
               </CardHeader>

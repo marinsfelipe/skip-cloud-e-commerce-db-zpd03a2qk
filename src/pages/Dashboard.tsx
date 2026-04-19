@@ -5,6 +5,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { Line, LineChart, XAxis, YAxis } from 'recharts'
 import { CHART_DATA, MOCK_AUDIT_LOGS } from '@/lib/mock-data'
 import { formatDate } from '@/lib/format'
+import { Button } from '@/components/ui/button'
+import { Link } from 'react-router-dom'
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -30,6 +32,16 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <Button asChild>
+          <Link to="/cms/linhas">
+            <ImageIcon className="mr-2 h-4 w-4" />
+            Gerenciar CMS Linhas
+          </Link>
+        </Button>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card className="border-l-4 border-l-secondary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
