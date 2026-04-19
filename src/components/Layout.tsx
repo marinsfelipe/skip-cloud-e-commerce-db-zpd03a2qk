@@ -8,6 +8,7 @@ import {
   ScrollText,
   LogOut,
   Users as UsersIcon,
+  Settings,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -21,7 +22,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { useAuthStore } from '@/stores/use-auth-store'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -48,10 +49,11 @@ const MENU_ITEMS = [
   { title: 'Mídia', icon: ImageIcon, url: '/midia' },
   { title: 'Usuários', icon: UsersIcon, url: '/usuarios' },
   { title: 'Logs', icon: ScrollText, url: '/logs' },
+  { title: 'Configurações', icon: Settings, url: '/configuracoes' },
 ]
 
 export default function Layout() {
-  const { isAuthenticated, user, logout } = useAuthStore()
+  const { isAuthenticated, user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -68,8 +70,8 @@ export default function Layout() {
   const activeItem = MENU_ITEMS.find((i) => i.url === location.pathname)
 
   const handleLogout = () => {
-    fetch('/api/v1/auth/logout', { method: 'POST' }).catch(() => {})
     logout()
+    navigate('/admin')
   }
 
   return (
@@ -137,7 +139,7 @@ export default function Layout() {
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10 border border-primary/10">
                       <AvatarFallback className="bg-secondary text-secondary-foreground font-serif">
-                        {user?.name.charAt(0) || 'A'}
+                        {user?.name?.charAt(0) || 'A'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>

@@ -1,48 +1,63 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/stores/use-auth-store'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import pb from '@/lib/pocketbase/client'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const login = useAuthStore((state) => state.login)
+  const { login } = useAuth()
   const navigate = useNavigate()
   const { toast } = useToast()
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    setTimeout(() => {
-      setIsLoading(false)
-      if (email && password.length >= 6) {
-        login(email)
-        navigate('/dashboard')
-        toast({
-          title: 'Login realizado com sucesso',
-          description: 'Bem-vindo ao Vittorio Design.',
-        })
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Erro de autenticação',
-          description: 'Credenciais inválidas.',
-        })
-      }
-    }, 800)
+    const { error } = await login(email, password)
+    setIsLoading(false)
+
+    if (!error) {
+      navigate('/dashboard')
+      toast({
+        title: 'Login realizado com sucesso',
+        description: 'Bem-vindo ao Vittorio Design.',
+      })
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Erro de autenticação',
+        description: 'Credenciais inválidas.',
+      })
+    }
   }
 
-  const handleForgot = () => {
-    toast({
-      title: 'Recuperação de Senha',
-      description: 'Instruções enviadas para o e-mail informado.',
-    })
+  const handleForgot = async () => {
+    if (!email) {
+      return toast({ variant: 'destructive', title: 'Digite seu e-mail no campo acima' })
+    }
+    try {
+      const res = await pb.send('/backend/v1/request-reset', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      })
+      toast({
+        title: 'Recuperação Solicitada',
+        description: 'O link de recuperação foi gerado (veja console/alert).',
+      })
+      if (res.link) {
+        console.log('RESET LINK:', res.link)
+        alert(`Reset Link (Demo Mode): ${res.link}`)
+      }
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erro ao solicitar recuperação' })
+    }
   }
 
   return (

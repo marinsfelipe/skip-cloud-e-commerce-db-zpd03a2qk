@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Upload, ShieldAlert, Filter, FileUp } from 'lucide-react'
+import { ShieldAlert, Filter, FileUp } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -11,31 +11,26 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
+import pb from '@/lib/pocketbase/client'
+import { ImageUploader } from '@/components/ImageUploader'
 
 const CATEGORIES = ['Todas', 'Produtos', 'Promoções', 'Blog', 'Páginas', 'Outros']
 
 export default function Media() {
   const [category, setCategory] = useState('Todas')
+  const [images, setImages] = useState<any[]>([])
   const { toast } = useToast()
 
-  const images = Array.from({ length: 8 }).map(
-    (_, i) => `https://img.usecurling.com/p/400/400?q=luxury%20furniture&seed=${i}`,
-  )
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files.length > 10) {
-      toast({
-        variant: 'destructive',
-        title: 'Limite Excedido',
-        description: 'Você pode enviar no máximo 10 imagens por vez.',
-      })
-      return
-    }
-    if (files && files.length > 0) {
-      toast({ title: 'Upload iniciado', description: `Enviando ${files.length} arquivos...` })
-    }
+  const loadImages = async () => {
+    try {
+      const records = await pb.collection('media').getFullList({ sort: '-created' })
+      setImages(records)
+    } catch (err) {}
   }
+
+  useEffect(() => {
+    loadImages()
+  }, [])
 
   const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -87,40 +82,36 @@ export default function Media() {
                 </SelectContent>
               </Select>
             </div>
-
-            <label className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors h-10 px-4 py-2 cursor-pointer shadow-sm">
-              <Upload className="mr-2 h-4 w-4" /> Upload em Lote (Máx 10)
-              <input
-                type="file"
-                multiple
-                accept="image/jpeg, image/png, image/webp"
-                className="hidden"
-                onChange={handleImageUpload}
-              />
-            </label>
+            <div className="w-full sm:w-auto min-w-[200px]">
+              <ImageUploader onUploadSuccess={loadImages} />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {images.map((src, i) => (
+            {images.map((img) => (
               <Card
-                key={i}
+                key={img.id}
                 className="overflow-hidden group cursor-pointer border-0 shadow-sm relative"
               >
-                <CardContent className="p-0 relative aspect-square">
+                <CardContent className="p-0 relative aspect-square bg-muted">
                   <img
-                    src={src}
+                    src={pb.files.getURL(img, img.file)}
                     alt="Mídia"
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-center">
-                    <span className="text-white font-medium text-sm mb-2">
-                      Editar Metadados (Alt)
+                    <span className="text-white font-medium text-xs break-words w-full">
+                      {img.file}
                     </span>
-                    <span className="text-white/70 text-xs">JPG • 1.2MB</span>
                   </div>
                 </CardContent>
               </Card>
             ))}
+            {images.length === 0 && (
+              <div className="col-span-full py-12 text-center text-muted-foreground">
+                Nenhuma imagem encontrada.
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -159,9 +150,6 @@ export default function Media() {
                       </p>
                       <p>
                         <strong>Tamanho:</strong> 24.5 MB
-                      </p>
-                      <p>
-                        <strong>Atualizado em:</strong> 15 Abr 2026, 14:30
                       </p>
                     </div>
                   </div>

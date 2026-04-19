@@ -3,9 +3,8 @@ import { Menu, X, Phone } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { useAssetStore } from '@/stores/use-asset-store'
-import { useAuthStore } from '@/stores/use-auth-store'
-import { ImageUploadOverlay } from '@/components/ImageUploadOverlay'
+import { useAuth } from '@/hooks/use-auth'
+import { useCMS } from '@/hooks/use-cms'
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
@@ -18,8 +17,17 @@ const NAV_LINKS = [
 export default function PublicLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const location = useLocation()
-  const { logoUrl, setLogo } = useAssetStore()
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const { isAuthenticated } = useAuth()
+  const { getSetting, getSocialUrl, getPageContent } = useCMS()
+
+  const logoUrl = getSetting('site_logo')
+  const instagramUrl =
+    getSocialUrl('instagram') || 'https://www.instagram.com/vittoriodesignoficial/'
+  const footerAbout = getPageContent(
+    'footer',
+    'about',
+    'Equipamentos Profissionais para Food Service. Excelência e durabilidade em Inox 304.',
+  )
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-background text-foreground">
@@ -30,13 +38,16 @@ export default function PublicLayout() {
             className="flex items-center gap-2 relative group overflow-hidden rounded-md"
           >
             {logoUrl ? (
-              <img src={logoUrl} alt="Vittorio Design" className="h-12 w-auto object-contain" />
+              <img
+                src={logoUrl}
+                alt="Vittorio Logo"
+                className="h-12 max-w-[150px] object-contain"
+              />
             ) : (
               <span className="font-serif text-3xl font-bold text-primary tracking-widest px-2 py-1 border-2 border-primary">
                 VITTORIO
               </span>
             )}
-            {isAuthenticated && <ImageUploadOverlay onUpload={setLogo} label="Alterar Logo" />}
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -114,9 +125,7 @@ export default function PublicLayout() {
             <div className="font-serif text-2xl font-bold text-primary tracking-widest">
               VITTORIO
             </div>
-            <p className="text-muted-foreground text-sm">
-              Equipamentos Profissionais para Food Service. Excelência e durabilidade em Inox 304.
-            </p>
+            <p className="text-muted-foreground text-sm">{footerAbout}</p>
           </div>
           <div>
             <h4 className="font-semibold mb-4 text-foreground">Navegação</h4>
@@ -142,12 +151,22 @@ export default function PublicLayout() {
             <h4 className="font-semibold mb-4 text-foreground">Social</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
                   Instagram
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
                   LinkedIn
                 </a>
               </li>

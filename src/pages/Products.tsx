@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { MOCK_PRODUCTS } from '@/lib/mock-data'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -18,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, Plus, Trash2, RotateCcw, Upload } from 'lucide-react'
+import { Search, Plus, Trash2, RotateCcw, X } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import {
   Dialog,
@@ -30,6 +29,8 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import pb from '@/lib/pocketbase/client'
+import { useRealtime } from '@/hooks/use-realtime'
 
 const LINES = [
   'Todas',
@@ -45,11 +46,24 @@ const LINES = [
 ]
 
 export default function Products() {
-  const [products, setProducts] = useState(MOCK_PRODUCTS)
+  const [products, setProducts] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const [lineFilter, setLineFilter] = useState('Todas')
   const [isAdding, setIsAdding] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState<{ id: string; file: File; url: string }[]>([])
   const { toast } = useToast()
+
+  const loadProducts = async () => {
+    try {
+      const records = await pb.collection('products').getFullList({ sort: '-created' })
+      setProducts(records)
+    } catch (err) {}
+  }
+
+  useEffect(() => {
+    loadProducts()
+  }, [])
+  useRealtime('products', loadProducts)
 
   const filteredProducts = products.filter((p) => {
     const matchesSearch =
@@ -59,28 +73,70 @@ export default function Products() {
     return matchesSearch && matchesLine
   })
 
-  const toggleSoftDelete = (id: string, currentState: boolean) => {
+  const toggleSoftDelete = async (id: string, currentState: boolean) => {
     if (!currentState && !confirm('Tem certeza que deseja arquivar este produto?')) return
-    setProducts(products.map((p) => (p.id === id ? { ...p, is_deleted: !currentState } : p)))
+    await pb.collection('products').update(id, { is_deleted: !currentState })
     toast({
       title: !currentState ? 'Produto arquivado' : 'Produto restaurado',
-      description: 'A alteração foi salva no banco de dados (Soft Delete).',
     })
   }
 
-  const handleInlineEdit = (id: string, field: 'price' | 'stock', value: string) => {
+  const handleInlineEdit = async (id: string, field: 'price' | 'stock', value: string) => {
     const numValue = Number(value)
     if (isNaN(numValue)) return
-    setProducts(products.map((p) => (p.id === id ? { ...p, [field]: numValue } : p)))
+    await pb.collection('products').update(id, { [field]: numValue })
   }
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files).map((f) => ({
+        id: Math.random().toString(36).substring(7),
+        file: f,
+        url: URL.createObjectURL(f),
+      }))
+      setSelectedFiles((prev) => [...prev, ...newFiles])
+    }
+  }
+
+  const handleRemoveFile = (id: string) => {
+    setSelectedFiles((prev) => prev.filter((f) => f.id !== id))
+  }
+
+  const handleSaveProduct = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setIsAdding(false)
-    toast({
-      title: 'Produto cadastrado',
-      description: 'Código gerado automaticamente: VD.EX.VTR.004.00',
-    })
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+
+    try {
+      const pData = {
+        name: formData.get('name') as string,
+        code: formData.get('code') as string,
+        line: formData.get('line') as string,
+        price: Number(formData.get('price')),
+        stock: Number(formData.get('stock')),
+        specifications: formData.get('specifications')
+          ? JSON.parse(formData.get('specifications') as string)
+          : {},
+        is_deleted: false,
+      }
+
+      const record = await pb.collection('products').create(pData)
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const fData = new FormData()
+        fData.append('product', record.id)
+        fData.append('image', selectedFiles[i].file)
+        fData.append('sort_order', i.toString())
+        await pb.collection('product_images').create(fData)
+      }
+
+      toast({ title: 'Produto cadastrado' })
+      setIsAdding(false)
+      setSelectedFiles([])
+      form.reset()
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erro ao salvar' })
+    }
   }
 
   return (
@@ -104,11 +160,15 @@ export default function Products() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Nome do Produto</Label>
-                  <Input required placeholder="Forno Inox Pro" />
+                  <Input name="name" required placeholder="Forno Inox Pro" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Código</Label>
+                  <Input name="code" required placeholder="VD.EX.001" />
                 </div>
                 <div className="space-y-2">
                   <Label>Linha</Label>
-                  <Select required defaultValue="Speciale">
+                  <Select required name="line" defaultValue="Speciale">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -123,27 +183,55 @@ export default function Products() {
                 </div>
                 <div className="space-y-2">
                   <Label>Preço (R$)</Label>
-                  <Input type="number" required placeholder="15000" />
+                  <Input name="price" type="number" required placeholder="15000" />
                 </div>
                 <div className="space-y-2">
                   <Label>Estoque</Label>
-                  <Input type="number" required placeholder="10" />
+                  <Input name="stock" type="number" required placeholder="10" />
                 </div>
                 <div className="space-y-2 col-span-2">
-                  <Label>Especificações (JSON)</Label>
+                  <Label>Especificações (JSON Opcional)</Label>
                   <Textarea
+                    name="specifications"
                     className="font-mono text-xs"
                     placeholder='{"voltagem": "220V", "material": "Inox"}'
                   />
                 </div>
                 <div className="space-y-2 col-span-2">
-                  <Label>Imagens (Arraste para reordenar)</Label>
-                  <div className="border-2 border-dashed border-border rounded-md p-8 text-center cursor-pointer hover:bg-muted/50 transition-colors flex flex-col items-center">
-                    <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                    <span className="text-sm font-medium">Solte as imagens aqui</span>
-                    <span className="text-xs text-muted-foreground">
-                      Múltiplos arquivos suportados
-                    </span>
+                  <Label>Imagens do Produto (Ordem de Seleção)</Label>
+                  <div className="border-2 border-dashed border-border rounded-md p-4 bg-muted/30">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/jpeg, image/png, image/webp"
+                      onChange={handleFileSelect}
+                      className="mb-4 block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                    />
+                    {selectedFiles.length > 0 && (
+                      <div className="flex gap-2 flex-wrap mt-4">
+                        {selectedFiles.map((f) => (
+                          <div
+                            key={f.id}
+                            className="relative w-20 h-20 rounded border bg-background"
+                          >
+                            <img
+                              src={f.url}
+                              className="w-full h-full object-cover rounded"
+                              alt="preview"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-5 w-5 rounded-full"
+                              onClick={() => handleRemoveFile(f.id)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

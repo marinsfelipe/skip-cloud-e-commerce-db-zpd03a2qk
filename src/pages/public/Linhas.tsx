@@ -1,10 +1,8 @@
 import { useSeo } from '@/hooks/use-seo'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAssetStore } from '@/stores/use-asset-store'
-import { useAuthStore } from '@/stores/use-auth-store'
-import { ImageUploadOverlay } from '@/components/ImageUploadOverlay'
+import { useCMS } from '@/hooks/use-cms'
 
-const LINES = [
+const DEFAULT_LINES = [
   {
     id: 'strongest',
     name: 'Strongest',
@@ -59,51 +57,41 @@ export default function Linhas() {
     'linhas vittorio, strongest, cucinare, fredda, aprezzo, speciale, visione, perfecto gusto, ideale, progetto',
   )
 
-  const { images, setImage } = useAssetStore()
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const { getPageContent } = useCMS()
 
   return (
     <div className="py-20 bg-background min-h-screen">
       <div className="container px-4">
         <div className="text-center mb-16 animate-fade-in-up">
-          <h1 className="text-4xl font-serif font-bold mb-4">Nossas Linhas</h1>
+          <h1 className="text-4xl font-serif font-bold mb-4">
+            {getPageContent('linhas', 'title', 'Nossas Linhas')}
+          </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Descubra o portfólio completo da Vittorio Design. Engenharia de precisão para cada
-            necessidade do seu negócio.
+            {getPageContent(
+              'linhas',
+              'subtitle',
+              'Descubra o portfólio completo da Vittorio Design. Engenharia de precisão para cada necessidade do seu negócio.',
+            )}
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {LINES.map((line, idx) => (
+          {DEFAULT_LINES.map((line, idx) => (
             <Card
               key={line.id}
               className="bg-card border-border overflow-hidden hover:border-primary transition-colors group animate-fade-in-up"
               style={{ animationDelay: `${idx * 50}ms` }}
             >
-              <div className="aspect-[4/3] bg-muted relative">
-                {images[`linha-${line.id}`] ? (
-                  <img
-                    src={images[`linha-${line.id}`]}
-                    alt={line.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
-                    <span className="font-serif text-2xl opacity-20">{line.name}</span>
-                  </div>
-                )}
-                {isAuthenticated && (
-                  <ImageUploadOverlay
-                    onUpload={(url) => setImage(`linha-${line.id}`, url)}
-                    label={`Imagem ${line.name}`}
-                  />
-                )}
+              <div className="aspect-[4/3] bg-muted relative flex items-center justify-center text-muted-foreground">
+                <span className="font-serif text-2xl opacity-20">{line.name}</span>
               </div>
               <CardHeader>
                 <CardTitle className="font-serif text-2xl text-primary">{line.name}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">{line.desc}</p>
+                <p className="text-muted-foreground leading-relaxed">
+                  {getPageContent('linhas', `desc_${line.id}`, line.desc)}
+                </p>
               </CardContent>
             </Card>
           ))}
