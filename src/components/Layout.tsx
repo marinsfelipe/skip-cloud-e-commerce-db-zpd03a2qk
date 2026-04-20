@@ -43,7 +43,7 @@ import {
 
 const MENU_ITEMS = [
   { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard' },
-  { title: 'Produtos', icon: Package, url: '/produtos' },
+  { title: 'Config. Produtos', icon: Package, url: '/admin/config-produtos' },
   { title: 'Promoções', icon: Tag, url: '/promocoes' },
   { title: 'Blog', icon: FileText, url: '/blog' },
   { title: 'Mídia', icon: ImageIcon, url: '/midia' },

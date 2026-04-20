@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast'
 import pb from '@/lib/pocketbase/client'
 import { ImageUploader } from '@/components/ImageUploader'
 import { Switch } from '@/components/ui/switch'
+import { Progress } from '@/components/ui/progress'
 
 const CATEGORIES = ['Todas', 'Produtos', 'Promoções', 'Blog', 'Páginas', 'Outros']
 
@@ -35,35 +36,81 @@ export default function Media() {
     loadImages()
   }, [])
 
+  const [uploadingPdf, setUploadingPdf] = useState(false)
+  const [pdfProgress, setPdfProgress] = useState(0)
+
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      if (file.size > 50 * 1024 * 1024) {
+    if (!file) return
+
+    if (file.size > 50 * 1024 * 1024) {
+      toast({
+        variant: 'destructive',
+        title: 'Arquivo muito grande',
+        description: 'O catálogo PDF deve ter no máximo 50MB.',
+      })
+      return
+    }
+
+    setUploadingPdf(true)
+    setPdfProgress(0)
+
+    try {
+      let recordId = ''
+      try {
+        const record = await pb.collection('settings').getFirstListItem('key="catalog_pdf"')
+        recordId = record.id
+      } catch {
+        const newRecord = await pb.collection('settings').create({ key: 'catalog_pdf' })
+        recordId = newRecord.id
+      }
+
+      const xhr = new XMLHttpRequest()
+      const url = `${import.meta.env.VITE_POCKETBASE_URL}/api/collections/settings/records/${recordId}`
+      xhr.open('PATCH', url, true)
+      xhr.setRequestHeader('Authorization', pb.authStore.token)
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          setPdfProgress(Math.round((event.loaded / event.total) * 100))
+        }
+      }
+
+      xhr.onload = () => {
+        setUploadingPdf(false)
+        if (xhr.status === 200) {
+          toast({
+            title: 'Catálogo Atualizado',
+            description: `${file.name} foi definido como o catálogo oficial.`,
+          })
+        } else {
+          toast({
+            variant: 'destructive',
+            title: 'Erro',
+            description: 'Falha ao enviar o catálogo.',
+          })
+        }
+      }
+
+      xhr.onerror = () => {
+        setUploadingPdf(false)
         toast({
           variant: 'destructive',
-          title: 'Arquivo muito grande',
-          description: 'O catálogo PDF deve ter no máximo 50MB.',
+          title: 'Erro de rede',
+          description: 'Verifique sua conexão.',
         })
-        return
       }
-      try {
-        const formData = new FormData()
-        formData.append('key', 'catalog_pdf')
-        formData.append('file', file)
 
-        try {
-          const record = await pb.collection('settings').getFirstListItem('key="catalog_pdf"')
-          await pb.collection('settings').update(record.id, formData)
-        } catch {
-          await pb.collection('settings').create(formData)
-        }
-        toast({
-          title: 'Catálogo Atualizado',
-          description: `${file.name} foi definido como o catálogo oficial.`,
-        })
-      } catch (err) {
-        toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao enviar o catálogo.' })
-      }
+      const formData = new FormData()
+      formData.append('file', file)
+      xhr.send(formData)
+    } catch (err) {
+      setUploadingPdf(false)
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Falha ao preparar o envio do catálogo.',
+      })
     }
   }
 
@@ -179,20 +226,54 @@ export default function Media() {
 
                 <div className="space-y-6">
                   <div className="flex flex-col gap-3">
-                    <label className="border-2 border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer text-center">
-                      <FileUp className="h-8 w-8 text-primary mb-2" />
-                      <span className="font-medium text-foreground mb-1">
-                        Substituir Catálogo PDF
-                      </span>
-                      <span className="text-xs text-muted-foreground">Tamanho máximo: 50MB</span>
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        className="hidden"
-                        onChange={handlePdfUpload}
-                      />
-                    </label>
-                    <Button variant="outline" className="w-full">
+                    {!uploadingPdf ? (
+                      <label className="border-2 border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer text-center">
+                        <FileUp className="h-8 w-8 text-primary mb-2" />
+                        <span className="font-medium text-foreground mb-1">
+                          Substituir Catálogo PDF
+                        </span>
+                        <span className="text-xs text-muted-foreground">Tamanho máximo: 50MB</span>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          className="hidden"
+                          onChange={handlePdfUpload}
+                        />
+                      </label>
+                    ) : (
+                      <div className="border border-border rounded-lg p-6 flex flex-col items-center justify-center text-center space-y-4">
+                        <span className="font-medium text-foreground">Enviando Catálogo...</span>
+                        <div className="w-full flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>Progresso</span>
+                          <span>{pdfProgress}%</span>
+                        </div>
+                        <Progress value={pdfProgress} className="h-2 w-full" />
+                      </div>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={async () => {
+                        try {
+                          const record = await pb
+                            .collection('settings')
+                            .getFirstListItem('key="catalog_pdf"')
+                          if (record.file) {
+                            window.open(pb.files.getURL(record, record.file), '_blank')
+                          } else {
+                            toast({
+                              title: 'Catálogo não encontrado',
+                              description: 'Nenhum PDF foi enviado ainda.',
+                            })
+                          }
+                        } catch {
+                          toast({
+                            title: 'Catálogo não encontrado',
+                            description: 'Nenhum PDF foi enviado ainda.',
+                          })
+                        }
+                      }}
+                    >
                       Baixar Cópia (Apenas Admin)
                     </Button>
                   </div>

@@ -149,7 +149,7 @@ export default function Home() {
               asChild
               className="text-lg px-8 bg-transparent text-white border-white hover:bg-white hover:text-black"
             >
-              <Link to="/produtos">Ver Catálogo</Link>
+              <Link to="/produtos">Ver Produtos</Link>
             </Button>
           </div>
         </div>

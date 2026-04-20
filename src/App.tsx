@@ -9,6 +9,8 @@ import ResetPassword from './pages/ResetPassword'
 import Home from './pages/public/Home'
 import Sobre from './pages/public/Sobre'
 import Linhas from './pages/public/Linhas'
+import Produtos from './pages/public/Produtos'
+import ProdutoDetalhes from './pages/public/ProdutoDetalhes'
 import Catalogo from './pages/public/Catalogo'
 import Contato from './pages/public/Contato'
 import Dashboard from './pages/Dashboard'
@@ -34,16 +36,16 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/linhas" element={<Linhas />} />
+            <Route path="/produtos" element={<Produtos />} />
+            <Route path="/produtos/:id" element={<ProdutoDetalhes />} />
             <Route path="/catalogo" element={<Catalogo />} />
-            <Route path="/produtos" element={<Catalogo />} />
             <Route path="/contato" element={<Contato />} />
           </Route>
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/reset-password" element={<ResetPassword />} />
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin/produtos" element={<Products />} />
-            <Route path="/produtos" element={<Products />} />
+            <Route path="/admin/config-produtos" element={<Products />} />
             <Route path="/promocoes" element={<Promotions />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/midia" element={<Media />} />
