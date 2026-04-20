@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { MOCK_USERS } from '@/lib/mock-data'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -29,41 +28,68 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import pb from '@/lib/pocketbase/client'
+import { useRealtime } from '@/hooks/use-realtime'
 
 export default function UsersPage() {
-  const [users, setUsers] = useState(MOCK_USERS)
+  const [users, setUsers] = useState<any[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const { toast } = useToast()
 
-  const maxUsers = 3
-  const canAddUser = users.filter((u) => u.is_active).length < maxUsers
-
-  const handleAddUser = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const newUser = {
-      id: Date.now().toString(),
-      name: formData.get('name') as string,
-      email: formData.get('email') as string,
-      role: formData.get('role') as string,
-      is_active: true,
+  const loadUsers = async () => {
+    try {
+      const records = await pb.collection('users').getFullList({ sort: '-created' })
+      setUsers(records)
+    } catch (err) {
+      console.error(err)
     }
-    setUsers([...users, newUser])
-    setIsOpen(false)
-    toast({
-      title: 'Usuário adicionado',
-      description: 'O novo usuário recebeu um e-mail de convite.',
-    })
   }
 
-  const handleDeactivate = (id: string) => {
-    if (!confirm('Tem certeza que deseja revogar o acesso deste usuário?')) return
-    setUsers(users.map((u) => (u.id === id ? { ...u, is_active: false } : u)))
-    toast({
-      title: 'Usuário desativado',
-      description: 'Acesso revogado com sucesso.',
-      variant: 'destructive',
-    })
+  useEffect(() => {
+    loadUsers()
+  }, [])
+  useRealtime('users', loadUsers)
+
+  const maxUsers = 10
+  const activeUsersCount = users.filter((u) => u.is_active !== false).length
+  const canAddUser = activeUsersCount < maxUsers
+
+  const handleAddUser = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    try {
+      await pb.collection('users').create({
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: 'Password123!',
+        passwordConfirm: 'Password123!',
+        role: formData.get('role'),
+        is_active: true,
+      })
+      setIsOpen(false)
+      toast({ title: 'Usuário adicionado', description: 'O novo usuário foi criado com sucesso.' })
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao criar usuário',
+        description: 'Verifique os dados e tente novamente.',
+      })
+    }
+  }
+
+  const handleDeactivate = async (id: string, currentState: boolean) => {
+    if (
+      !confirm(
+        `Tem certeza que deseja ${currentState ? 'revogar' : 'restaurar'} o acesso deste usuário?`,
+      )
+    )
+      return
+    try {
+      await pb.collection('users').update(id, { is_active: !currentState })
+      toast({ title: `Usuário ${currentState ? 'desativado' : 'ativado'}` })
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erro ao atualizar usuário' })
+    }
   }
 
   return (
@@ -72,8 +98,7 @@ export default function UsersPage() {
         <div>
           <h2 className="text-3xl font-serif font-bold tracking-tight">Usuários</h2>
           <p className="text-muted-foreground">
-            Gerencie o acesso administrativo ({users.filter((u) => u.is_active).length}/{maxUsers}{' '}
-            vagas).
+            Gerencie o acesso administrativo ({activeUsersCount}/{maxUsers} vagas).
           </p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -108,7 +133,7 @@ export default function UsersPage() {
                 </Select>
               </div>
               <DialogFooter>
-                <Button type="submit">Enviar Convite</Button>
+                <Button type="submit">Criar Usuário</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -128,29 +153,29 @@ export default function UsersPage() {
           </TableHeader>
           <TableBody>
             {users.map((user) => (
-              <TableRow key={user.id} className={!user.is_active ? 'opacity-50' : ''}>
+              <TableRow key={user.id} className={user.is_active === false ? 'opacity-50' : ''}>
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {user.role === 'Admin' && <Shield className="h-4 w-4 text-primary" />}
-                    {user.role}
+                    {user.role || 'Editor'}
                   </div>
                 </TableCell>
                 <TableCell>
                   <Badge
-                    variant={user.is_active ? 'default' : 'secondary'}
-                    className={user.is_active ? 'bg-green-600' : ''}
+                    variant={user.is_active !== false ? 'default' : 'secondary'}
+                    className={user.is_active !== false ? 'bg-green-600' : ''}
                   >
-                    {user.is_active ? 'Ativo' : 'Inativo'}
+                    {user.is_active !== false ? 'Ativo' : 'Inativo'}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDeactivate(user.id)}
-                    disabled={!user.is_active || user.role === 'Admin'}
+                    onClick={() => handleDeactivate(user.id, user.is_active !== false)}
+                    disabled={user.id === pb.authStore.record?.id}
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>

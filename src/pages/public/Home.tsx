@@ -14,13 +14,6 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 
-const FEATURED_LINES = [
-  { id: 'strongest', name: 'Strongest', desc: 'Robustez extrema para alta demanda.' },
-  { id: 'speciale', name: 'Speciale', desc: 'Projetos sob medida.' },
-  { id: 'aprezzo', name: 'Aprezzo', desc: 'Exposição com visibilidade máxima.' },
-  { id: 'fredda', name: 'Fredda', desc: 'Refrigeração premium.' },
-]
-
 export default function Home() {
   useSeo(
     'Início',
@@ -30,6 +23,8 @@ export default function Home() {
 
   const { getPageContent, getPageImage } = useCMS()
   const [blogPosts, setBlogPosts] = useState<any[]>([])
+  const [carouselImages, setCarouselImages] = useState<any[]>([])
+  const [featuredLines, setFeaturedLines] = useState<any[]>([])
 
   const heroTitle = getPageContent(
     'home',
@@ -67,10 +62,60 @@ export default function Home() {
       .getList(1, 6, { sort: '-created', expand: 'image' })
       .then((res) => setBlogPosts(res.items))
       .catch(console.error)
+
+    pb.collection('media')
+      .getFullList({ filter: 'is_ad_carousel=true' })
+      .then(setCarouselImages)
+      .catch(console.error)
+
+    pb.collection('product_images')
+      .getFullList({ expand: 'product', sort: 'created' })
+      .then((images) => {
+        const linesMap = new Map<string, any>()
+        images.forEach((img) => {
+          const p = img.expand?.product
+          if (p && p.line && !linesMap.has(p.line)) {
+            linesMap.set(p.line, {
+              id: p.line,
+              name: p.line,
+              desc: `Explorar a linha ${p.line}`,
+              image: pb.files.getURL(img, img.image),
+            })
+          }
+        })
+        const loadedLines = Array.from(linesMap.values()).slice(0, 4)
+        if (loadedLines.length > 0) setFeaturedLines(loadedLines)
+        else setFeaturedLines([{ id: '1', name: 'Strongest', desc: 'Robustez extrema', image: '' }])
+      })
+      .catch(() =>
+        setFeaturedLines([{ id: '1', name: 'Strongest', desc: 'Robustez extrema', image: '' }]),
+      )
   }, [])
 
   return (
     <div className="flex flex-col min-h-screen">
+      {carouselImages.length > 0 && (
+        <div className="bg-zinc-950 w-full border-b-2 border-primary/20">
+          <Carousel opts={{ align: 'center', loop: true }} className="w-full">
+            <CarouselContent>
+              {carouselImages.map((img) => (
+                <CarouselItem key={img.id} className="basis-full">
+                  <div className="w-full h-[40vh] md:h-[50vh] relative flex items-center justify-center bg-black">
+                    <img
+                      src={pb.files.getURL(img, img.file)}
+                      alt="Ad Carousel"
+                      className="w-full h-full object-cover opacity-80"
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-4 bg-background/50 border-0 hover:bg-background" />
+            <CarouselNext className="right-4 bg-background/50 border-0 hover:bg-background" />
+          </Carousel>
+        </div>
+      )}
+
       <section
         className="relative h-[80vh] min-h-[600px] flex items-center justify-center bg-muted overflow-hidden"
         style={{
@@ -104,7 +149,7 @@ export default function Home() {
               asChild
               className="text-lg px-8 bg-transparent text-white border-white hover:bg-white hover:text-black"
             >
-              <Link to="/catalogo">Ver Catálogo</Link>
+              <Link to="/produtos">Ver Catálogo</Link>
             </Button>
           </div>
         </div>
@@ -166,22 +211,30 @@ export default function Home() {
             </Button>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURED_LINES.map((line) => (
+            {featuredLines.map((line) => (
               <Link
                 key={line.id}
                 to="/linhas"
                 className="group block relative overflow-hidden rounded-xl bg-black/50 border border-white/10 hover:border-primary transition-colors backdrop-blur-sm"
               >
                 <div className="aspect-[4/3] relative bg-muted/20 flex items-center justify-center text-muted-foreground">
-                  <span className="text-xs uppercase tracking-widest text-white/50">
-                    {line.name}
-                  </span>
+                  {line.image ? (
+                    <img
+                      src={line.image}
+                      alt={line.name}
+                      className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                    />
+                  ) : (
+                    <span className="text-xs uppercase tracking-widest text-white/50">
+                      {line.name}
+                    </span>
+                  )}
                 </div>
-                <div className="p-6">
+                <div className="p-6 relative z-10">
                   <h3 className="font-serif text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
                     {line.name}
                   </h3>
-                  <p className="text-gray-400 text-sm">{line.desc}</p>
+                  <p className="text-gray-300 text-sm">{line.desc}</p>
                 </div>
               </Link>
             ))}

@@ -13,6 +13,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import pb from '@/lib/pocketbase/client'
 import { ImageUploader } from '@/components/ImageUploader'
+import { Switch } from '@/components/ui/switch'
 
 const CATEGORIES = ['Todas', 'Produtos', 'Promoções', 'Blog', 'Páginas', 'Outros']
 
@@ -34,7 +35,7 @@ export default function Media() {
     loadImages()
   }, [])
 
-  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 50 * 1024 * 1024) {
@@ -45,12 +46,39 @@ export default function Media() {
         })
         return
       }
-      toast({
-        title: 'Catálogo Atualizado',
-        description: `${file.name} foi definido como o catálogo oficial.`,
-      })
+      try {
+        const formData = new FormData()
+        formData.append('key', 'catalog_pdf')
+        formData.append('file', file)
+
+        try {
+          const record = await pb.collection('settings').getFirstListItem('key="catalog_pdf"')
+          await pb.collection('settings').update(record.id, formData)
+        } catch {
+          await pb.collection('settings').create(formData)
+        }
+        toast({
+          title: 'Catálogo Atualizado',
+          description: `${file.name} foi definido como o catálogo oficial.`,
+        })
+      } catch (err) {
+        toast({ variant: 'destructive', title: 'Erro', description: 'Falha ao enviar o catálogo.' })
+      }
     }
   }
+
+  const handleToggleCarousel = async (id: string, checked: boolean) => {
+    try {
+      await pb.collection('media').update(id, { is_ad_carousel: checked })
+      setImages(images.map((img) => (img.id === id ? { ...img, is_ad_carousel: checked } : img)))
+      toast({ title: checked ? 'Adicionado ao carrossel' : 'Removido do carrossel' })
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erro ao atualizar mídia' })
+    }
+  }
+
+  const filteredImages =
+    category === 'Todas' ? images : images.filter((i) => i.category === category)
 
   return (
     <div className="space-y-6">
@@ -90,18 +118,25 @@ export default function Media() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {images.map((img) => (
-              <Card
-                key={img.id}
-                className="overflow-hidden group cursor-pointer border-0 shadow-sm relative"
-              >
-                <CardContent className="p-0 relative aspect-square bg-muted">
+            {filteredImages.map((img) => (
+              <Card key={img.id} className="overflow-hidden group border-0 shadow-sm relative">
+                <div
+                  className="absolute top-2 right-2 z-10 flex items-center gap-2 bg-background/80 backdrop-blur-sm p-1 rounded-md"
+                  title="Mostrar no Carrossel"
+                >
+                  <span className="text-[10px] font-medium leading-none">Carrossel</span>
+                  <Switch
+                    checked={img.is_ad_carousel}
+                    onCheckedChange={(c) => handleToggleCarousel(img.id, c)}
+                  />
+                </div>
+                <CardContent className="p-0 relative aspect-square bg-muted cursor-pointer">
                   <img
                     src={pb.files.getURL(img, img.file)}
                     alt="Mídia"
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-center">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-end p-4 text-center pointer-events-none">
                     <span className="text-white font-medium text-xs break-words w-full">
                       {img.file}
                     </span>
@@ -109,7 +144,7 @@ export default function Media() {
                 </CardContent>
               </Card>
             ))}
-            {images.length === 0 && (
+            {filteredImages.length === 0 && (
               <div className="col-span-full py-12 text-center text-muted-foreground">
                 Nenhuma imagem encontrada.
               </div>
@@ -137,25 +172,12 @@ export default function Media() {
                 >
                   <div className="absolute inset-0 bg-white shadow-inner m-4 flex flex-col items-center justify-center text-center p-8 opacity-90 pointer-events-none">
                     <h1 className="text-3xl font-serif mb-4">Vittorio Design</h1>
-                    <h2 className="text-xl font-light text-muted-foreground">Coleção 2026</h2>
+                    <h2 className="text-xl font-light text-muted-foreground">Catálogo PDF</h2>
                     <div className="mt-8 w-24 h-1 bg-secondary"></div>
                   </div>
-                  <div className="absolute inset-0 bg-transparent z-50"></div>
                 </div>
 
                 <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-2">Catálogo Atual</h3>
-                    <div className="space-y-1 text-sm text-muted-foreground bg-muted p-4 rounded-md">
-                      <p>
-                        <strong>Arquivo:</strong> vittorio-catalogo-2026-v2.pdf
-                      </p>
-                      <p>
-                        <strong>Tamanho:</strong> 24.5 MB
-                      </p>
-                    </div>
-                  </div>
-
                   <div className="flex flex-col gap-3">
                     <label className="border-2 border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer text-center">
                       <FileUp className="h-8 w-8 text-primary mb-2" />

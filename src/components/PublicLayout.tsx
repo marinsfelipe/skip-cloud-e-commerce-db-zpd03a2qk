@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: 'Home', href: '/' },
   { label: 'Sobre', href: '/sobre' },
   { label: 'Linhas', href: '/linhas' },
+  { label: 'Produtos', href: '/produtos' },
   { label: 'Catálogo', href: '/catalogo' },
   { label: 'Contato', href: '/contato' },
 ]
@@ -69,7 +70,7 @@ export default function PublicLayout() {
               </Link>
             ))}
             <Button asChild className="font-semibold" variant="default">
-              <a href="https://wa.me/5521990451568" target="_blank" rel="noopener noreferrer">
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                 <Phone className="w-4 h-4 mr-2" />
                 (21) 99045-1568
               </a>
@@ -89,7 +90,6 @@ export default function PublicLayout() {
           </button>
         </div>
 
-        {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-border bg-background p-4 flex flex-col gap-4 animate-in slide-in-from-top-2">
             {NAV_LINKS.map((link) => (
@@ -108,9 +108,8 @@ export default function PublicLayout() {
               </Link>
             ))}
             <Button asChild className="w-full mt-2">
-              <a href="https://wa.me/5521990451568" target="_blank" rel="noopener noreferrer">
-                <Phone className="w-4 h-4 mr-2" />
-                Fale Conosco
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                <Phone className="w-4 h-4 mr-2" /> Fale Conosco
               </a>
             </Button>
           </div>
