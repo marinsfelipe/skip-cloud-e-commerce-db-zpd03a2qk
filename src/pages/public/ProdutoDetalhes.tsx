@@ -76,7 +76,9 @@ export default function ProdutoDetalhes() {
           ? JSON.parse(product.specifications)
           : product.specifications
       specs = Object.entries(parsed)
-    } catch {}
+    } catch (error) {
+      console.error('Failed to parse specifications', error)
+    }
   }
 
   return (
