@@ -65,51 +65,31 @@ export default function Media() {
         recordId = newRecord.id
       }
 
-      const xhr = new XMLHttpRequest()
-      const url = `${import.meta.env.VITE_POCKETBASE_URL}/api/collections/settings/records/${recordId}`
-      xhr.open('PATCH', url, true)
-      xhr.setRequestHeader('Authorization', pb.authStore.token)
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          setPdfProgress(Math.round((event.loaded / event.total) * 100))
-        }
-      }
-
-      xhr.onload = () => {
-        setUploadingPdf(false)
-        if (xhr.status === 200) {
-          toast({
-            title: 'Catálogo Atualizado',
-            description: `${file.name} foi definido como o catálogo oficial.`,
-          })
-        } else {
-          toast({
-            variant: 'destructive',
-            title: 'Erro',
-            description: 'Falha ao enviar o catálogo.',
-          })
-        }
-      }
-
-      xhr.onerror = () => {
-        setUploadingPdf(false)
-        toast({
-          variant: 'destructive',
-          title: 'Erro de rede',
-          description: 'Verifique sua conexão.',
-        })
-      }
-
       const formData = new FormData()
       formData.append('file', file)
-      xhr.send(formData)
-    } catch (err) {
+
+      // Fake progress for UI feedback since standard fetch doesn't support onUploadProgress natively
+      const interval = setInterval(() => {
+        setPdfProgress((p) => (p < 90 ? p + 10 : p))
+      }, 500)
+
+      await pb.collection('settings').update(recordId, formData)
+
+      clearInterval(interval)
+      setPdfProgress(100)
+      setUploadingPdf(false)
+
+      toast({
+        title: 'Catálogo Atualizado',
+        description: `${file.name} foi definido como o catálogo oficial.`,
+      })
+    } catch (err: any) {
       setUploadingPdf(false)
       toast({
         variant: 'destructive',
-        title: 'Erro',
-        description: 'Falha ao preparar o envio do catálogo.',
+        title: 'Erro no Upload',
+        description:
+          err?.message || 'Falha ao enviar o catálogo. Verifique o tamanho e formato do arquivo.',
       })
     }
   }
