@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ShieldAlert, Filter, FileUp } from 'lucide-react'
+import { Filter, FileUp, Trash2 } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -13,15 +13,17 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import pb from '@/lib/pocketbase/client'
 import { ImageUploader } from '@/components/ImageUploader'
-import { extractFieldErrors, getErrorMessage } from '@/lib/pocketbase/errors'
 import { Switch } from '@/components/ui/switch'
-import { Progress } from '@/components/ui/progress'
+import { Input } from '@/components/ui/input'
+import { getErrorMessage } from '@/lib/pocketbase/errors'
 
 const CATEGORIES = ['Todas', 'Produtos', 'Promoções', 'Blog', 'Páginas', 'Outros']
 
 export default function Media() {
   const [category, setCategory] = useState('Todas')
   const [images, setImages] = useState<any[]>([])
+  const [catalogPages, setCatalogPages] = useState<any[]>([])
+  const [uploadingCatalog, setUploadingCatalog] = useState(false)
   const { toast } = useToast()
 
   const loadImages = async () => {
@@ -33,73 +35,19 @@ export default function Media() {
     }
   }
 
-  useEffect(() => {
-    loadImages()
-  }, [])
-
-  const [uploadingPdf, setUploadingPdf] = useState(false)
-  const [pdfProgress, setPdfProgress] = useState(0)
-
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (file.size > 50 * 1024 * 1024) {
-      toast({
-        variant: 'destructive',
-        title: 'Arquivo muito grande',
-        description: 'O catálogo PDF deve ter no máximo 50MB.',
-      })
-      return
-    }
-
-    setUploadingPdf(true)
-    setPdfProgress(0)
-
+  const loadCatalogPages = async () => {
     try {
-      let recordId = ''
-      try {
-        const record = await pb.collection('settings').getFirstListItem('key="catalog_pdf"')
-        recordId = record.id
-      } catch {
-        const newRecord = await pb.collection('settings').create({ key: 'catalog_pdf' })
-        recordId = newRecord.id
-      }
-
-      const formData = new FormData()
-      formData.append('file', file)
-
-      // Fake progress for UI feedback since standard fetch doesn't support onUploadProgress natively
-      const interval = setInterval(() => {
-        setPdfProgress((p) => (p < 90 ? p + 10 : p))
-      }, 500)
-
-      await pb.collection('settings').update(recordId, formData)
-
-      clearInterval(interval)
-      setPdfProgress(100)
-      setUploadingPdf(false)
-
-      toast({
-        title: 'Catálogo Atualizado',
-        description: `${file.name} foi definido como o catálogo oficial.`,
-      })
-    } catch (err: any) {
-      setUploadingPdf(false)
-
-      const fieldErrors = extractFieldErrors(err)
-      const errorMsg =
-        fieldErrors.file ||
-        getErrorMessage(err) ||
-        'Falha ao enviar o catálogo. Verifique o tamanho e formato do arquivo.'
-
-      toast({
-        variant: 'destructive',
-        title: 'Erro no Upload',
-        description: errorMsg,
-      })
+      const records = await pb.collection('catalog_pages').getFullList({ sort: 'sort_order' })
+      setCatalogPages(records)
+    } catch (err) {
+      console.error(err)
     }
   }
+
+  useEffect(() => {
+    loadImages()
+    loadCatalogPages()
+  }, [])
 
   const handleToggleCarousel = async (id: string, checked: boolean) => {
     try {
@@ -111,6 +59,49 @@ export default function Media() {
     }
   }
 
+  const handleCatalogUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setUploadingCatalog(true)
+    try {
+      const maxOrder = catalogPages.reduce((max, p) => Math.max(max, p.sort_order), 0)
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData()
+        formData.append('image', files[i])
+        formData.append('sort_order', (maxOrder + i + 1).toString())
+        await pb.collection('catalog_pages').create(formData)
+      }
+      toast({ title: 'Páginas adicionadas com sucesso' })
+      loadCatalogPages()
+    } catch (err: any) {
+      toast({ variant: 'destructive', title: 'Erro', description: getErrorMessage(err) })
+    } finally {
+      setUploadingCatalog(false)
+      if (e.target) e.target.value = ''
+    }
+  }
+
+  const updateOrder = async (id: string, newOrder: number) => {
+    try {
+      await pb.collection('catalog_pages').update(id, { sort_order: newOrder })
+      loadCatalogPages()
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erro ao atualizar ordem' })
+    }
+  }
+
+  const deleteCatalogPage = async (id: string) => {
+    if (!confirm('Remover esta página do catálogo?')) return
+    try {
+      await pb.collection('catalog_pages').delete(id)
+      toast({ title: 'Página removida' })
+      loadCatalogPages()
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Erro ao remover' })
+    }
+  }
+
   const filteredImages =
     category === 'Todas' ? images : images.filter((i) => i.category === category)
 
@@ -119,14 +110,14 @@ export default function Media() {
       <div>
         <h2 className="text-3xl font-serif font-bold tracking-tight">Biblioteca de Mídia</h2>
         <p className="text-muted-foreground">
-          Gerencie imagens de produtos e o catálogo PDF seguro.
+          Gerencie imagens de produtos e o catálogo sequencial.
         </p>
       </div>
 
       <Tabs defaultValue="images" className="w-full">
         <TabsList>
           <TabsTrigger value="images">Galeria de Imagens</TabsTrigger>
-          <TabsTrigger value="catalog">Catálogo PDF Seguro</TabsTrigger>
+          <TabsTrigger value="catalog">Gerenciar Catálogo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="images" className="mt-6 space-y-6">
@@ -186,88 +177,78 @@ export default function Media() {
           </div>
         </TabsContent>
 
-        <TabsContent value="catalog" className="mt-6">
-          <Card>
-            <CardContent className="p-8">
-              <div className="flex items-center gap-3 mb-6 p-4 bg-amber-50 text-amber-900 rounded-md border border-amber-200">
-                <ShieldAlert className="h-6 w-6 text-amber-600" />
-                <div>
-                  <h4 className="font-semibold">Segurança de Visualização Ativada</h4>
-                  <p className="text-sm">
-                    O download e a impressão deste PDF estão desativados via bloqueio de interface.
-                  </p>
-                </div>
+        <TabsContent value="catalog" className="mt-6 space-y-6">
+          <div className="flex justify-between items-center bg-card p-4 rounded-lg border">
+            <div>
+              <h3 className="text-lg font-medium">Páginas do Catálogo</h3>
+              <p className="text-sm text-muted-foreground">
+                Adicione e reordene as imagens do seu catálogo digital.
+              </p>
+            </div>
+            <label className="cursor-pointer">
+              <div className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors">
+                <FileUp className="w-4 h-4 mr-2" />
+                {uploadingCatalog ? 'Enviando...' : 'Adicionar Páginas'}
               </div>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleCatalogUpload}
+                disabled={uploadingCatalog}
+              />
+            </label>
+          </div>
 
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div
-                  className="relative bg-muted rounded-lg border w-full aspect-[1/1.4] max-w-sm mx-auto overflow-hidden pdf-secure-container flex items-center justify-center shadow-lg"
-                  onContextMenu={(e) => e.preventDefault()}
-                >
-                  <div className="absolute inset-0 bg-white shadow-inner m-4 flex flex-col items-center justify-center text-center p-8 opacity-90 pointer-events-none">
-                    <h1 className="text-3xl font-serif mb-4">Vittorio Design</h1>
-                    <h2 className="text-xl font-light text-muted-foreground">Catálogo PDF</h2>
-                    <div className="mt-8 w-24 h-1 bg-secondary"></div>
-                  </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {catalogPages.map((page) => (
+              <Card key={page.id} className="overflow-hidden relative group border-2">
+                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="h-8 w-8 rounded-full shadow-md"
+                    onClick={() => deleteCatalogPage(page.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-
-                <div className="space-y-6">
-                  <div className="flex flex-col gap-3">
-                    {!uploadingPdf ? (
-                      <label className="border-2 border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer text-center">
-                        <FileUp className="h-8 w-8 text-primary mb-2" />
-                        <span className="font-medium text-foreground mb-1">
-                          Substituir Catálogo PDF
-                        </span>
-                        <span className="text-xs text-muted-foreground">Tamanho máximo: 50MB</span>
-                        <input
-                          type="file"
-                          accept="application/pdf"
-                          className="hidden"
-                          onChange={handlePdfUpload}
-                        />
-                      </label>
+                <CardContent className="p-0">
+                  <div className="aspect-[1/1.4] bg-muted relative">
+                    {page.image ? (
+                      <img
+                        src={pb.files.getURL(page, page.image)}
+                        className="w-full h-full object-cover"
+                        alt={`Página ${page.sort_order}`}
+                      />
                     ) : (
-                      <div className="border border-border rounded-lg p-6 flex flex-col items-center justify-center text-center space-y-4">
-                        <span className="font-medium text-foreground">Enviando Catálogo...</span>
-                        <div className="w-full flex items-center justify-between text-xs text-muted-foreground mb-1">
-                          <span>Progresso</span>
-                          <span>{pdfProgress}%</span>
-                        </div>
-                        <Progress value={pdfProgress} className="h-2 w-full" />
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                        Sem imagem
                       </div>
                     )}
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={async () => {
-                        try {
-                          const record = await pb
-                            .collection('settings')
-                            .getFirstListItem('key="catalog_pdf"')
-                          if (record.file) {
-                            window.open(pb.files.getURL(record, record.file), '_blank')
-                          } else {
-                            toast({
-                              title: 'Catálogo não encontrado',
-                              description: 'Nenhum PDF foi enviado ainda.',
-                            })
-                          }
-                        } catch {
-                          toast({
-                            title: 'Catálogo não encontrado',
-                            description: 'Nenhum PDF foi enviado ainda.',
-                          })
-                        }
-                      }}
-                    >
-                      Baixar Cópia (Apenas Admin)
-                    </Button>
+                    <div className="absolute bottom-0 left-0 right-0 bg-background/95 p-3 flex items-center justify-between border-t shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
+                      <span className="text-sm font-medium">Ordem:</span>
+                      <Input
+                        type="number"
+                        className="w-20 h-8 text-sm text-center"
+                        defaultValue={page.sort_order}
+                        onBlur={(e) => {
+                          const val = parseInt(e.target.value)
+                          if (!isNaN(val) && val !== page.sort_order) updateOrder(page.id, val)
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
+                </CardContent>
+              </Card>
+            ))}
+            {catalogPages.length === 0 && !uploadingCatalog && (
+              <div className="col-span-full py-16 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-muted/20">
+                Nenhuma página no catálogo. Faça o upload das imagens para começar.
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
