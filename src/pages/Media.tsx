@@ -13,6 +13,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import pb from '@/lib/pocketbase/client'
 import { ImageUploader } from '@/components/ImageUploader'
+import { extractFieldErrors, getErrorMessage } from '@/lib/pocketbase/errors'
 import { Switch } from '@/components/ui/switch'
 import { Progress } from '@/components/ui/progress'
 
@@ -85,11 +86,17 @@ export default function Media() {
       })
     } catch (err: any) {
       setUploadingPdf(false)
+
+      const fieldErrors = extractFieldErrors(err)
+      const errorMsg =
+        fieldErrors.file ||
+        getErrorMessage(err) ||
+        'Falha ao enviar o catálogo. Verifique o tamanho e formato do arquivo.'
+
       toast({
         variant: 'destructive',
         title: 'Erro no Upload',
-        description:
-          err?.message || 'Falha ao enviar o catálogo. Verifique o tamanho e formato do arquivo.',
+        description: errorMsg,
       })
     }
   }
