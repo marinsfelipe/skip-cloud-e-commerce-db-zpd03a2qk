@@ -22,41 +22,46 @@ import Logs from './pages/Logs'
 import UsersPage from './pages/Users'
 import SettingsPage from './pages/SettingsPage'
 import CmsLinhas from './pages/CmsLinhas'
+import Leads from './pages/Leads'
 import NotFound from './pages/NotFound'
 import { AuthProvider } from './hooks/use-auth'
+import { GoogleAdsProvider } from './components/GoogleAdsProvider'
 
 const App = () => (
   <AuthProvider>
     <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <Routes>
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/sobre" element={<Sobre />} />
-            <Route path="/linhas" element={<Linhas />} />
-            <Route path="/produtos" element={<Produtos />} />
-            <Route path="/produtos/:id" element={<ProdutoDetalhes />} />
-            <Route path="/catalogo" element={<Catalogo />} />
-            <Route path="/contato" element={<Contato />} />
-          </Route>
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/reset-password" element={<ResetPassword />} />
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin/config-produtos" element={<Products />} />
-            <Route path="/promocoes" element={<Promotions />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/midia" element={<Media />} />
-            <Route path="/logs" element={<Logs />} />
-            <Route path="/usuarios" element={<UsersPage />} />
-            <Route path="/configuracoes" element={<SettingsPage />} />
-            <Route path="/cms/linhas" element={<CmsLinhas />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </TooltipProvider>
+      <GoogleAdsProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/sobre" element={<Sobre />} />
+              <Route path="/linhas" element={<Linhas />} />
+              <Route path="/produtos" element={<Produtos />} />
+              <Route path="/produtos/:id" element={<ProdutoDetalhes />} />
+              <Route path="/catalogo" element={<Catalogo />} />
+              <Route path="/contato" element={<Contato />} />
+            </Route>
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin/reset-password" element={<ResetPassword />} />
+            <Route element={<Layout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin/config-produtos" element={<Products />} />
+              <Route path="/promocoes" element={<Promotions />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/midia" element={<Media />} />
+              <Route path="/logs" element={<Logs />} />
+              <Route path="/usuarios" element={<UsersPage />} />
+              <Route path="/configuracoes" element={<SettingsPage />} />
+              <Route path="/mensagens" element={<Leads />} />
+              <Route path="/cms/linhas" element={<CmsLinhas />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TooltipProvider>
+      </GoogleAdsProvider>
     </BrowserRouter>
   </AuthProvider>
 )

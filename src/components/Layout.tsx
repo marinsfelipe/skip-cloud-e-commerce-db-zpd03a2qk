@@ -9,6 +9,7 @@ import {
   LogOut,
   Users as UsersIcon,
   Settings,
+  MessageSquare,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -43,6 +44,7 @@ import {
 
 const MENU_ITEMS = [
   { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard' },
+  { title: 'Mensagens / Leads', icon: MessageSquare, url: '/mensagens' },
   { title: 'Config. Produtos', icon: Package, url: '/admin/config-produtos' },
   { title: 'Promoções', icon: Tag, url: '/promocoes' },
   { title: 'Blog', icon: FileText, url: '/blog' },

@@ -7,11 +7,17 @@ import pb from '@/lib/pocketbase/client'
 import { useToast } from '@/hooks/use-toast'
 import { MediaSelector } from '@/components/MediaSelector'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export default function SettingsPage() {
   const [socialLinks, setSocialLinks] = useState<any[]>([])
   const [pages, setPages] = useState<any[]>([])
   const [logoUrl, setLogoUrl] = useState('')
+  const [adsConfig, setAdsConfig] = useState<any>({
+    tag_id: '',
+    conversion_send_to: '',
+    is_active: false,
+  })
   const { toast } = useToast()
 
   const loadData = async () => {
@@ -27,6 +33,12 @@ export default function SettingsPage() {
       if (st && st.file) {
         setLogoUrl(pb.files.getURL(st, st.file))
       }
+
+      const ads = await pb
+        .collection('google_ads_config')
+        .getFirstListItem('', { sort: '-created' })
+        .catch(() => null)
+      if (ads) setAdsConfig(ads)
     } catch (err) {
       console.error(err)
     }
@@ -90,9 +102,72 @@ export default function SettingsPage() {
     }
   }
 
+  const handleSaveAdsConfig = async () => {
+    try {
+      if (adsConfig.id) {
+        await pb.collection('google_ads_config').update(adsConfig.id, adsConfig)
+      } else {
+        await pb.collection('google_ads_config').create(adsConfig)
+      }
+      await pb.collection('audit_log').create({ action: 'update_ads_config', details: adsConfig })
+      toast({ title: 'Configuração do Google Ads salva' })
+      loadData()
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erro ao salvar configuração' })
+    }
+  }
+
+  const checkAdsStatus = async () => {
+    try {
+      const res = await pb.send('/backend/v1/analytics/google-ads-status', { method: 'GET' })
+      toast({
+        title: 'Status do Google Ads (Deploy)',
+        description: `Ativo: ${res.is_active ? 'Sim' : 'Não'} | Tag: ${res.tag_id || 'N/A'}`,
+      })
+    } catch (e) {
+      toast({ variant: 'destructive', title: 'Erro ao checar status' })
+    }
+  }
+
   return (
     <div className="space-y-8">
       <h2 className="text-3xl font-serif font-bold">Configurações & CMS</h2>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Configuração Google Ads</CardTitle>
+          <Button variant="outline" size="sm" onClick={checkAdsStatus}>
+            Testar Deploy
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Tag ID (ex: AW-18109323512)</Label>
+              <Input
+                value={adsConfig?.tag_id || ''}
+                onChange={(e) => setAdsConfig({ ...adsConfig, tag_id: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Conversion Send To (ex: AW-18109323512/XXXXX)</Label>
+              <Input
+                value={adsConfig?.conversion_send_to || ''}
+                onChange={(e) => setAdsConfig({ ...adsConfig, conversion_send_to: e.target.value })}
+              />
+            </div>
+            <div className="flex items-center space-x-2 sm:col-span-2">
+              <Checkbox
+                id="ads-active"
+                checked={adsConfig?.is_active || false}
+                onCheckedChange={(c) => setAdsConfig({ ...adsConfig, is_active: !!c })}
+              />
+              <Label htmlFor="ads-active">Ativar Google Ads Global</Label>
+            </div>
+          </div>
+          <Button onClick={handleSaveAdsConfig}>Salvar Configuração Ads</Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
