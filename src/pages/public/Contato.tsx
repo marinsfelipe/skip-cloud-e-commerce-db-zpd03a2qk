@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { MapPin, Phone, Instagram, Send } from 'lucide-react'
+import { Phone, Instagram, Send, CheckCircle2 } from 'lucide-react'
 import { useSeo } from '@/hooks/use-seo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/hooks/use-toast'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
@@ -15,13 +14,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useCMS } from '@/hooks/use-cms'
+import pb from '@/lib/pocketbase/client'
+import { getErrorMessage } from '@/lib/pocketbase/errors'
 
 export default function Contato() {
   useSeo('Contato', 'Entre em contato com a Vittorio Design.', 'contato')
 
-  const { toast } = useToast()
   const { getPageContent, getSocialUrl, getPageImage } = useCMS()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   const intro = getPageContent(
     'contato',
@@ -31,14 +33,31 @@ export default function Contato() {
   const instagramUrl =
     getSocialUrl('instagram') || 'https://www.instagram.com/vittoriodesignoficial/'
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
-    setTimeout(() => {
+    setErrorMsg('')
+
+    const formData = new FormData(e.currentTarget)
+    const data = {
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      subject: formData.get('subject') as string,
+      inquiry_type: formData.get('inquiry_type') as string,
+      message: formData.get('message') as string,
+    }
+
+    try {
+      await pb.collection('contacts').create(data)
+      setIsSuccess(true)
+    } catch (err) {
+      const msg = getErrorMessage(err)
+      setErrorMsg(
+        msg || 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente mais tarde.',
+      )
+    } finally {
       setIsSubmitting(false)
-      toast({ title: 'Mensagem Enviada', description: 'Agradecemos o contato.' })
-      ;(e.target as HTMLFormElement).reset()
-    }, 1500)
+    }
   }
 
   const bgImage = getPageImage('contato', 'background')
@@ -109,44 +128,81 @@ export default function Contato() {
           <div className="lg:col-span-2 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             <Card className="bg-card border-border p-2">
               <CardContent className="p-6">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label>Nome Completo *</Label>
-                      <Input required className="bg-background" />
+                {isSuccess ? (
+                  <div className="text-center py-12 animate-fade-in-up">
+                    <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle2 className="w-8 h-8" />
                     </div>
-                    <div className="space-y-2">
-                      <Label>E-mail *</Label>
-                      <Input type="email" required className="bg-background" />
-                    </div>
+                    <h2 className="text-2xl font-bold mb-2">Mensagem Enviada!</h2>
+                    <p className="text-muted-foreground mb-6">
+                      Sua mensagem foi enviada com sucesso! Entraremos em contato em breve.
+                    </p>
+                    <Button variant="outline" onClick={() => setIsSuccess(false)}>
+                      Enviar nova mensagem
+                    </Button>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Assunto *</Label>
-                    <Select required>
-                      <SelectTrigger className="bg-background">
-                        <SelectValue placeholder="Assunto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="orcamento">Solicitar Orçamento</SelectItem>
-                        <SelectItem value="duvida">Dúvida Técnica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Mensagem *</Label>
-                    <Textarea required className="min-h-[150px] bg-background" />
-                  </div>
-                  <Button type="submit" size="lg" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      'Enviando...'
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Enviar Mensagem
-                      </>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {errorMsg && (
+                      <div className="p-4 rounded-md bg-destructive/15 text-destructive text-sm font-medium">
+                        {errorMsg}
+                      </div>
                     )}
-                  </Button>
-                </form>
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Nome Completo *</Label>
+                        <Input id="name" name="name" required className="bg-background" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">E-mail *</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          required
+                          className="bg-background"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="inquiry_type">Tipo de Contato *</Label>
+                        <Select name="inquiry_type" required>
+                          <SelectTrigger id="inquiry_type" className="bg-background">
+                            <SelectValue placeholder="Selecione..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Orçamento">Solicitar Orçamento</SelectItem>
+                            <SelectItem value="Dúvida Técnica">Dúvida Técnica</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="subject">Assunto *</Label>
+                        <Input id="subject" name="subject" required className="bg-background" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Mensagem *</Label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        required
+                        className="min-h-[150px] bg-background"
+                      />
+                    </div>
+                    <Button type="submit" size="lg" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        'Enviando...'
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Enviar Mensagem
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </div>
