@@ -192,7 +192,7 @@ export default function PublicLayout() {
       </main>
 
       <footer className="bg-card border-t border-border py-12">
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-5 gap-8">
           <div className="space-y-4">
             <Link
               to="/"
@@ -222,6 +222,19 @@ export default function PublicLayout() {
                   </Link>
                 </li>
               ))}
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-4 text-foreground">Institucional</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                <Link
+                  to="/p/politica-de-privacidade"
+                  className="hover:text-primary transition-colors"
+                >
+                  Política de Privacidade
+                </Link>
+              </li>
             </ul>
           </div>
           <div>

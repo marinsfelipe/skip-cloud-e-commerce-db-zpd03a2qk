@@ -10,6 +10,7 @@ import {
   Users as UsersIcon,
   Settings,
   MessageSquare,
+  Files,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -47,6 +48,7 @@ const MENU_ITEMS = [
   { title: 'Mensagens / Leads', icon: MessageSquare, url: '/mensagens' },
   { title: 'Config. Produtos', icon: Package, url: '/admin/config-produtos' },
   { title: 'Promoções', icon: Tag, url: '/promocoes' },
+  { title: 'Páginas', icon: Files, url: '/admin/paginas' },
   { title: 'Blog', icon: FileText, url: '/blog' },
   { title: 'Mídia', icon: ImageIcon, url: '/midia' },
   { title: 'Usuários', icon: UsersIcon, url: '/usuarios' },

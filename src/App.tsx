@@ -23,6 +23,8 @@ import UsersPage from './pages/Users'
 import SettingsPage from './pages/SettingsPage'
 import CmsLinhas from './pages/CmsLinhas'
 import Leads from './pages/Leads'
+import CustomPages from './pages/CustomPages'
+import CustomPage from './pages/public/CustomPage'
 import NotFound from './pages/NotFound'
 import { AuthProvider } from './hooks/use-auth'
 import { GoogleAdsProvider } from './components/GoogleAdsProvider'
@@ -43,6 +45,7 @@ const App = () => (
               <Route path="/produtos/:id" element={<ProdutoDetalhes />} />
               <Route path="/catalogo" element={<Catalogo />} />
               <Route path="/contato" element={<Contato />} />
+              <Route path="/p/:slug" element={<CustomPage />} />
             </Route>
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/reset-password" element={<ResetPassword />} />
@@ -57,6 +60,7 @@ const App = () => (
               <Route path="/configuracoes" element={<SettingsPage />} />
               <Route path="/mensagens" element={<Leads />} />
               <Route path="/cms/linhas" element={<CmsLinhas />} />
+              <Route path="/admin/paginas" element={<CustomPages />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
