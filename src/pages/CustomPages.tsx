@@ -42,6 +42,7 @@ import {
   deleteCustomPage,
   CustomPage,
 } from '@/services/custom-pages'
+import { extractFieldErrors, getErrorMessage } from '@/lib/pocketbase/errors'
 import { format } from 'date-fns'
 
 const formSchema = z.object({
@@ -88,10 +89,15 @@ export default function CustomPages() {
       setIsOpen(false)
       loadPages()
     } catch (error: any) {
-      if (error?.response?.data?.slug?.code === 'validation_not_unique') {
-        form.setError('slug', { message: 'Este slug já está em uso.' })
+      const fieldErrors = extractFieldErrors(error)
+
+      if (Object.keys(fieldErrors).length > 0) {
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as any, { message })
+        })
+        toast.error('Por favor, corrija os erros no formulário.')
       } else {
-        toast.error('Erro ao salvar página')
+        toast.error(getErrorMessage(error) || 'Erro ao salvar página')
       }
     }
   }

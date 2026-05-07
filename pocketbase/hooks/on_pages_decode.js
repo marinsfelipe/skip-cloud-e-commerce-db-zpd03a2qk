@@ -1,17 +1,22 @@
-onRecordCreateRequest((e) => {
-  const body = e.requestInfo().body
-  if (body && typeof body.content === 'string' && body.content.startsWith('uri:')) {
-    const decoded = decodeURIComponent(body.content.slice(4))
-    e.record.set('content', decoded)
+onRecordValidate((e) => {
+  const content = e.record.getString('content')
+  if (content && content.startsWith('hex:')) {
+    const hex = content.slice(4)
+    let str = ''
+    for (let i = 0; i < hex.length; i += 2) {
+      str += '%' + hex.substring(i, i + 2)
+    }
+    try {
+      e.record.set('content', decodeURIComponent(str))
+    } catch (err) {
+      console.log('Error decoding hex content:', err)
+    }
+  } else if (content && content.startsWith('uri:')) {
+    try {
+      e.record.set('content', decodeURIComponent(content.slice(4)))
+    } catch (err) {
+      console.log('Error decoding uri content:', err)
+    }
   }
-  return e.next()
-}, 'pages')
-
-onRecordUpdateRequest((e) => {
-  const body = e.requestInfo().body
-  if (body && typeof body.content === 'string' && body.content.startsWith('uri:')) {
-    const decoded = decodeURIComponent(body.content.slice(4))
-    e.record.set('content', decoded)
-  }
-  return e.next()
+  e.next()
 }, 'pages')
