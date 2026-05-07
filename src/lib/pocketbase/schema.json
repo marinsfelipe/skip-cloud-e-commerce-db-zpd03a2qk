@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-26T00:47:15.211Z",
+  "generatedAt": "2026-05-07T03:30:11.240Z",
   "collections": [
     {
       "name": "users",
@@ -204,12 +204,6 @@
           "system": false
         },
         {
-          "name": "content",
-          "type": "editor",
-          "required": false,
-          "system": false
-        },
-        {
           "name": "type",
           "type": "text",
           "required": false,
@@ -245,6 +239,12 @@
         {
           "name": "is_custom_page",
           "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "content",
+          "type": "text",
           "required": false,
           "system": false
         }

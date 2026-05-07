@@ -26,18 +26,24 @@ export const createCustomPage = async (data: {
   slug: string
   content: string
 }) => {
-  return pb.collection('pages').create({
+  const payload = {
     ...data,
+    content: data.content ? `uri:${encodeURIComponent(data.content)}` : '',
     is_custom_page: true,
     section_name: 'content', // required field for base pages
-  })
+  }
+  return pb.collection('pages').create(payload)
 }
 
 export const updateCustomPage = async (
   id: string,
   data: Partial<{ page_name: string; slug: string; content: string }>,
 ) => {
-  return pb.collection('pages').update(id, data)
+  const payload = { ...data }
+  if (payload.content) {
+    payload.content = `uri:${encodeURIComponent(payload.content)}`
+  }
+  return pb.collection('pages').update(id, payload)
 }
 
 export const deleteCustomPage = async (id: string) => {

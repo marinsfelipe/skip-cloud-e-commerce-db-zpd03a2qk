@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getCustomPageBySlug, CustomPage as CustomPageType } from '@/services/custom-pages'
 
@@ -7,6 +7,7 @@ export default function CustomPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState<CustomPageType | null>(null)
   const [loading, setLoading] = useState(true)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!slug) return
@@ -20,6 +21,23 @@ export default function CustomPage() {
         navigate('/')
       })
   }, [slug, navigate])
+
+  useEffect(() => {
+    if (page && contentRef.current) {
+      const container = contentRef.current
+      const scripts = container.querySelectorAll('script:not([data-executed])')
+
+      scripts.forEach((oldScript) => {
+        const newScript = document.createElement('script')
+        Array.from(oldScript.attributes).forEach((attr) => {
+          newScript.setAttribute(attr.name, attr.value)
+        })
+        newScript.setAttribute('data-executed', 'true')
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML))
+        oldScript.parentNode?.replaceChild(newScript, oldScript)
+      })
+    }
+  }, [page])
 
   if (loading) {
     return (
@@ -51,6 +69,7 @@ export default function CustomPage() {
 
         {/* Using standard prose classes for tailwind typography plugin integration */}
         <div
+          ref={contentRef}
           className="prose prose-stone dark:prose-invert max-w-none prose-headings:font-serif prose-headings:text-primary prose-a:text-primary hover:prose-a:text-primary/80"
           dangerouslySetInnerHTML={{ __html: page.content }}
         />
