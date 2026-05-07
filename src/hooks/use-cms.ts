@@ -34,9 +34,25 @@ export function useCMS() {
     loadData()
   }, [loadData])
 
+  const decodeHexString = (str: string): string => {
+    if (typeof str === 'string' && str.startsWith('hex:')) {
+      try {
+        const hexStr = str.slice(4)
+        let decoded = ''
+        for (let i = 0; i < hexStr.length; i += 2) {
+          decoded += '%' + hexStr.substring(i, i + 2)
+        }
+        return decodeURIComponent(decoded)
+      } catch (e) {
+        return str
+      }
+    }
+    return str
+  }
+
   const getPageContent = (pageName: string, sectionName: string, fallback: string = '') => {
     const p = pages.find((x) => x.page_name === pageName && x.section_name === sectionName)
-    return p?.content || fallback
+    return p?.content ? decodeHexString(p.content) : fallback
   }
 
   const getPageImage = (pageName: string, sectionName: string) => {
@@ -52,7 +68,7 @@ export function useCMS() {
     if (s?.file) {
       return pb.files.getURL(s, s.file)
     }
-    return s?.value || fallback
+    return s?.value ? decodeHexString(s.value) : fallback
   }
 
   const getSocialUrl = (platform: string) => {
