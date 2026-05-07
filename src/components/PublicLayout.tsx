@@ -228,6 +228,11 @@ export default function PublicLayout() {
             <h4 className="font-semibold mb-4 text-foreground">Institucional</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
+                <Link to="/p/artigos" className="hover:text-primary transition-colors">
+                  Artigos
+                </Link>
+              </li>
+              <li>
                 <Link
                   to="/p/politica-de-privacidade"
                   className="hover:text-primary transition-colors"

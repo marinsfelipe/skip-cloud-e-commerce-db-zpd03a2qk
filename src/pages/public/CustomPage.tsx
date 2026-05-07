@@ -14,7 +14,19 @@ export default function CustomPage() {
 
     getCustomPageBySlug(slug)
       .then((data) => {
-        setPage(data)
+        let content = data.content
+        if (content && content.startsWith('hex:')) {
+          try {
+            const hex = content.slice(4)
+            const bytes = new Uint8Array(
+              hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || [],
+            )
+            content = new TextDecoder().decode(bytes)
+          } catch (e) {
+            console.error('Failed to decode hex content', e)
+          }
+        }
+        setPage({ ...data, content })
         setLoading(false)
       })
       .catch(() => {
@@ -23,6 +35,8 @@ export default function CustomPage() {
   }, [slug, navigate])
 
   useEffect(() => {
+    const appendedScripts: HTMLScriptElement[] = []
+
     if (page && contentRef.current) {
       const container = contentRef.current
       const scripts = container.querySelectorAll('script:not([data-executed])')
@@ -33,8 +47,22 @@ export default function CustomPage() {
           newScript.setAttribute(attr.name, attr.value)
         })
         newScript.setAttribute('data-executed', 'true')
-        newScript.appendChild(document.createTextNode(oldScript.innerHTML))
-        oldScript.parentNode?.replaceChild(newScript, oldScript)
+        if (oldScript.innerHTML) {
+          newScript.appendChild(document.createTextNode(oldScript.innerHTML))
+        }
+        document.body.appendChild(newScript)
+        appendedScripts.push(newScript)
+        if (oldScript.parentNode) {
+          oldScript.parentNode.removeChild(oldScript)
+        }
+      })
+    }
+
+    return () => {
+      appendedScripts.forEach((script) => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script)
+        }
       })
     }
   }, [page])

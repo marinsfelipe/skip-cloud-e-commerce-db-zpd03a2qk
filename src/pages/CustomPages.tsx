@@ -104,10 +104,22 @@ export default function CustomPages() {
 
   const handleEdit = (page: CustomPage) => {
     setEditingId(page.id)
+
+    let decodedContent = page.content
+    if (decodedContent && decodedContent.startsWith('hex:')) {
+      try {
+        const hex = decodedContent.slice(4)
+        const bytes = new Uint8Array(hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || [])
+        decodedContent = new TextDecoder().decode(bytes)
+      } catch (e) {
+        console.error('Failed to decode hex content', e)
+      }
+    }
+
     form.reset({
       page_name: page.page_name,
       slug: page.slug,
-      content: page.content,
+      content: decodedContent,
     })
     setIsOpen(true)
   }
