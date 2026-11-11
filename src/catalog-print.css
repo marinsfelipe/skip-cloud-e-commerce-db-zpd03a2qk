@@ -1,0 +1,48 @@
+/* ===== Catálogo gerado (folheável + impressão PDF) ===== */
+
+.catalog-page {
+  break-after: page;
+  page-break-after: always;
+}
+
+.catalog-page:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+/* A4 vertical: 210mm x 297mm */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  .catalog-viewer {
+    background: #fff !important;
+  }
+
+  .catalog-page {
+    width: 210mm;
+    height: 297mm;
+    aspect-ratio: auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    break-after: page;
+    page-break-after: always;
+    overflow: hidden;
+  }
+
+  .catalog-print-page {
+    display: block;
+  }
+}

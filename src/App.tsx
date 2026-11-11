@@ -25,6 +25,9 @@ import CmsLinhas from './pages/CmsLinhas'
 import Leads from './pages/Leads'
 import CustomPages from './pages/CustomPages'
 import CustomPage from './pages/public/CustomPage'
+// nota: 'future' flags removidas — a versão do react-router do projeto não as exporta
+import GerarCatalogo from './pages/GerarCatalogo'
+import CatalogoGerado from './pages/public/CatalogoGerado'
 import NotFound from './pages/NotFound'
 import { AuthProvider } from './hooks/use-auth'
 import { GoogleAdsProvider } from './components/GoogleAdsProvider'
@@ -32,7 +35,7 @@ import { AnalyticsTracker } from './components/AnalyticsTracker'
 
 const App = () => (
   <AuthProvider>
-    <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
+    <BrowserRouter>
       <AnalyticsTracker />
       <GoogleAdsProvider>
         <TooltipProvider>
@@ -63,7 +66,9 @@ const App = () => (
               <Route path="/mensagens" element={<Leads />} />
               <Route path="/cms/linhas" element={<CmsLinhas />} />
               <Route path="/admin/paginas" element={<CustomPages />} />
+              <Route path="/admin/gerar-catalogo" element={<GerarCatalogo />} />
             </Route>
+            <Route path="/catalogo-gerado" element={<CatalogoGerado />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-03T12:25:43.274Z",
+  "generatedAt": "2026-11-11T10:44:13.364Z",
   "collections": [
     {
       "name": "users",
@@ -768,6 +768,77 @@
         "CREATE INDEX idx_site_analytics_event_type ON site_analytics (event_type)",
         "CREATE INDEX idx_site_analytics_path ON site_analytics (path)"
       ]
+    },
+    {
+      "name": "catalog_generator_config",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "layout",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "show_prices",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "subtitle",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "contact_info",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cover_image",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "updated_by",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
     }
   ]
 }

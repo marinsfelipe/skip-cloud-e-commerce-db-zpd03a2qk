@@ -16,6 +16,7 @@ export default function ProdutoDetalhes() {
   useSeo(
     product ? product.name : 'Produto',
     product ? `Especificações técnicas do produto ${product.name}` : 'Detalhes do produto',
+    'vittorio design, produto, especificações técnicas, equipamento',
   )
 
   useEffect(() => {

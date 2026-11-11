@@ -213,7 +213,12 @@ export default function Dashboard() {
                       axisLine={false}
                       tickFormatter={(value) => `${value}`}
                     />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartTooltip
+                      content={(() => {
+                        const C = ChartTooltipContent as any
+                        return <C />
+                      })()}
+                    />
                     <Line
                       type="monotone"
                       dataKey="requests"
@@ -309,7 +314,12 @@ export default function Dashboard() {
                       axisLine={false}
                     />
                     <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <ChartTooltip
+                      content={(() => {
+                        const C = ChartTooltipContent as any
+                        return <C />
+                      })()}
+                    />
                     <Bar dataKey="views" fill="var(--color-views)" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="clicks" fill="var(--color-clicks)" radius={[4, 4, 0, 0]} />
                   </BarChart>

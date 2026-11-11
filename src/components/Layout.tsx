@@ -11,6 +11,7 @@ import {
   Settings,
   MessageSquare,
   Files,
+  BookOpen,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -51,6 +52,7 @@ const MENU_ITEMS = [
   { title: 'Páginas', icon: Files, url: '/admin/paginas' },
   { title: 'Blog', icon: FileText, url: '/blog' },
   { title: 'Mídia', icon: ImageIcon, url: '/midia' },
+  { title: 'Gerar Catálogo', icon: BookOpen, url: '/admin/gerar-catalogo' },
   { title: 'Usuários', icon: UsersIcon, url: '/usuarios' },
   { title: 'Logs', icon: ScrollText, url: '/logs' },
   { title: 'Configurações', icon: Settings, url: '/configuracoes' },
