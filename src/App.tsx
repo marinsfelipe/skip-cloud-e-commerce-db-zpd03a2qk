@@ -28,10 +28,12 @@ import CustomPage from './pages/public/CustomPage'
 import NotFound from './pages/NotFound'
 import { AuthProvider } from './hooks/use-auth'
 import { GoogleAdsProvider } from './components/GoogleAdsProvider'
+import { AnalyticsTracker } from './components/AnalyticsTracker'
 
 const App = () => (
   <AuthProvider>
     <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
+      <AnalyticsTracker />
       <GoogleAdsProvider>
         <TooltipProvider>
           <Toaster />
