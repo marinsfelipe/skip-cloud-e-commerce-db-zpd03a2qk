@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Files,
   BookOpen,
+  PackagePlus,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -48,6 +49,7 @@ const MENU_ITEMS = [
   { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard' },
   { title: 'Mensagens / Leads', icon: MessageSquare, url: '/mensagens' },
   { title: 'Config. Produtos', icon: Package, url: '/admin/config-produtos' },
+  { title: 'Cadastrar Produto', icon: PackagePlus, url: '/admin/cadastrar-produto' },
   { title: 'Promoções', icon: Tag, url: '/promocoes' },
   { title: 'Páginas', icon: Files, url: '/admin/paginas' },
   { title: 'Blog', icon: FileText, url: '/blog' },

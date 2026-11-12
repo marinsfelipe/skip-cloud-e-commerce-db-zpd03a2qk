@@ -27,6 +27,7 @@ import CustomPages from './pages/CustomPages'
 import CustomPage from './pages/public/CustomPage'
 // nota: 'future' flags removidas — a versão do react-router do projeto não as exporta
 import GerarCatalogo from './pages/GerarCatalogo'
+import CadastrarProduto from './pages/CadastrarProduto'
 import CatalogoGerado from './pages/public/CatalogoGerado'
 import NotFound from './pages/NotFound'
 import { AuthProvider } from './hooks/use-auth'
@@ -57,6 +58,7 @@ const App = () => (
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin/config-produtos" element={<Products />} />
+              <Route path="/admin/cadastrar-produto" element={<CadastrarProduto />} />
               <Route path="/promocoes" element={<Promotions />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/midia" element={<Media />} />
