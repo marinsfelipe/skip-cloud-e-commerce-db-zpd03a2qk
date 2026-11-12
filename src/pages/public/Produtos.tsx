@@ -1,11 +1,25 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useSeo } from '@/hooks/use-seo'
 import pb from '@/lib/pocketbase/client'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
+
+// mesmas linhas exibidas na página /linhas
+const LINES = [
+  'Strongest',
+  'Cucinare',
+  'Fredda',
+  'Aprezzo',
+  'Speciale',
+  'Visione',
+  'Perfecto Gusto',
+  'Ideale',
+  'Progetto',
+]
 
 export default function Produtos() {
   useSeo(
@@ -14,8 +28,15 @@ export default function Produtos() {
     'catálogo vittorio design, equipamentos inox, produtos',
   )
 
+  const [searchParams, setSearchParams] = useSearchParams()
   const [products, setProducts] = useState<any[]>([])
+  const [selectedLine, setSelectedLine] = useState<string>(searchParams.get('linha') || '')
   const [searchTerm, setSearchTerm] = useState('')
+
+  useEffect(() => {
+    setSelectedLine(searchParams.get('linha') || '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   useEffect(() => {
     pb.collection('products')
@@ -41,30 +62,100 @@ export default function Produtos() {
       .catch(console.error)
   }, [])
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.line?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  const selectedLineIsValid = selectedLine && LINES.includes(selectedLine)
+
+  const filteredProducts = products.filter((p) => {
+    if (selectedLineIsValid && p.line !== selectedLine) return false
+    const term = searchTerm.toLowerCase()
+    if (term) {
+      return p.name?.toLowerCase().includes(term) || p.code?.toLowerCase().includes(term)
+    }
+    return true
+  })
+
+  const handleSelectLine = (line: string) => {
+    setSelectedLine(line)
+    const next = new URLSearchParams(searchParams)
+    if (line) {
+      next.set('linha', line)
+    } else {
+      next.delete('linha')
+    }
+    setSearchParams(next, { replace: true })
+  }
+
+  const handleClearFilters = () => {
+    setSelectedLine('')
+    setSearchTerm('')
+    setSearchParams({}, { replace: true })
+  }
+
+  const hasActiveFilters = Boolean(selectedLine || searchTerm)
 
   return (
     <div className="py-12 bg-background min-h-[calc(100vh-160px)] flex flex-col">
       <div className="container px-4 flex-1 flex flex-col">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-6">
-          <div>
-            <h1 className="text-4xl font-serif font-bold text-foreground">Nossos Produtos</h1>
-            <p className="text-lg text-muted-foreground mt-2">
-              Explore nossa linha de equipamentos com especificações técnicas detalhadas.
-            </p>
+        <div className="mb-10">
+          <h1 className="text-4xl font-serif font-bold text-foreground">Nossos Produtos</h1>
+          <p className="text-lg text-muted-foreground mt-2">
+            Explore nossa linha de equipamentos com especificações técnicas detalhadas.
+          </p>
+        </div>
+
+        {/* Filtros: busca + linha */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome ou código..."
+                className="pl-10 bg-card border-border"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleClearFilters}
+              disabled={!hasActiveFilters}
+              className="border-border text-foreground hover:bg-muted w-fit"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Limpar filtros
+            </Button>
           </div>
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar produtos ou linhas..."
-              className="pl-10 bg-card border-border"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+
+          <div>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              Filtrar por linha
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => handleSelectLine('')}
+                className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${
+                  !selectedLine
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card text-muted-foreground border-border hover:border-primary/50'
+                }`}
+              >
+                Todas as linhas
+              </button>
+              {LINES.map((line) => (
+                <button
+                  type="button"
+                  key={line}
+                  onClick={() => handleSelectLine(line)}
+                  className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${
+                    selectedLine === line
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card text-muted-foreground border-border hover:border-primary/50'
+                  }`}
+                >
+                  {line}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -84,7 +175,9 @@ export default function Produtos() {
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
             <h3 className="text-xl font-serif font-bold mb-2">Nenhum produto encontrado</h3>
             <p className="text-muted-foreground">
-              Sua busca por "{searchTerm}" não retornou resultados.
+              {selectedLineIsValid
+                ? `Nenhum produto na linha "${selectedLine}"${searchTerm ? ` para a busca "${searchTerm}"` : ''}.`
+                : `Sua busca por "${searchTerm}" não retornou resultados.`}
             </p>
           </div>
         ) : (
@@ -104,16 +197,14 @@ export default function Produtos() {
                         Sem imagem
                       </div>
                     )}
-                    <div className="absolute top-3 left-3">
-                      <Badge
-                        variant="secondary"
-                        className="bg-background/80 backdrop-blur-md shadow-sm border-0"
-                      >
-                        {p.line || 'Geral'}
-                      </Badge>
-                    </div>
                   </div>
                   <CardHeader className="flex-1 p-5">
+                    <Badge
+                      variant="secondary"
+                      className="w-fit mb-2 bg-background/80 backdrop-blur-md shadow-sm border-0 text-xs"
+                    >
+                      {p.line || 'Geral'}
+                    </Badge>
                     <CardTitle className="text-lg font-serif mb-1 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                       {p.name}
                     </CardTitle>

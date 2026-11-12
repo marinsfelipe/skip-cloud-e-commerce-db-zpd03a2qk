@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useSeo } from '@/hooks/use-seo'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCMS } from '@/hooks/use-cms'
@@ -77,36 +78,41 @@ export default function Linhas() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {DEFAULT_LINES.map((line, idx) => (
-            <Card
+            <Link
               key={line.id}
-              className="bg-card border-border overflow-hidden hover:border-primary transition-colors group animate-fade-in-up"
+              to={`/produtos?linha=${encodeURIComponent(line.name)}`}
+              className="block h-full animate-fade-in-up"
               style={{ animationDelay: `${idx * 50}ms` }}
             >
-              {(() => {
-                const imgUrl = getPageImage('linhas', `desc_${line.id}`)
-                return imgUrl ? (
-                  <div className="aspect-[4/3] relative overflow-hidden bg-muted">
-                    <img
-                      src={imgUrl}
-                      alt={line.name}
-                      className="w-full h-full object-cover transition-transform hover:scale-105 duration-500"
-                    />
-                  </div>
-                ) : (
-                  <div className="aspect-[4/3] bg-muted relative flex items-center justify-center text-muted-foreground">
-                    <span className="font-serif text-2xl opacity-20">{line.name}</span>
-                  </div>
-                )
-              })()}
-              <CardHeader>
-                <CardTitle className="font-serif text-2xl text-primary">{line.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
-                  {getPageContent('linhas', `desc_${line.id}`, line.desc)}
-                </p>
-              </CardContent>
-            </Card>
+              <Card className="bg-card border-border overflow-hidden hover:border-primary transition-colors group h-full cursor-pointer">
+                {(() => {
+                  const imgUrl = getPageImage('linhas', `desc_${line.id}`)
+                  return imgUrl ? (
+                    <div className="aspect-[4/3] relative overflow-hidden bg-muted">
+                      <img
+                        src={imgUrl}
+                        alt={line.name}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-[4/3] bg-muted relative flex items-center justify-center text-muted-foreground">
+                      <span className="font-serif text-2xl opacity-20">{line.name}</span>
+                    </div>
+                  )
+                })()}
+                <CardHeader>
+                  <CardTitle className="font-serif text-2xl text-primary group-hover:text-primary/80 transition-colors">
+                    {line.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {getPageContent('linhas', `desc_${line.id}`, line.desc)}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </div>
