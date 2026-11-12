@@ -1,12 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useSeo } from '@/hooks/use-seo'
 import pb from '@/lib/pocketbase/client'
+import { extractMainLengthMm } from '@/lib/measure-sort'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, X } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ArrowDownAZ, ArrowUpAZ, ArrowDownUp, Search, X } from 'lucide-react'
 
 // mesmas linhas exibidas na página /linhas
 const LINES = [
@@ -21,6 +29,15 @@ const LINES = [
   'Progetto',
 ]
 
+type SortOption = 'code-asc' | 'code-desc' | 'measure-asc' | 'measure-desc'
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'code-asc', label: 'Código (A → Z)' },
+  { value: 'code-desc', label: 'Código (Z → A)' },
+  { value: 'measure-asc', label: 'Medida (menor → maior)' },
+  { value: 'measure-desc', label: 'Medida (maior → menor)' },
+]
+
 export default function Produtos() {
   useSeo(
     'Produtos',
@@ -32,6 +49,7 @@ export default function Produtos() {
   const [products, setProducts] = useState<any[]>([])
   const [selectedLine, setSelectedLine] = useState<string>(searchParams.get('linha') || '')
   const [searchTerm, setSearchTerm] = useState('')
+  const [sortOption, setSortOption] = useState<SortOption>('code-asc')
 
   useEffect(() => {
     setSelectedLine(searchParams.get('linha') || '')
@@ -64,14 +82,56 @@ export default function Produtos() {
 
   const selectedLineIsValid = selectedLine && LINES.includes(selectedLine)
 
-  const filteredProducts = products.filter((p) => {
-    if (selectedLineIsValid && p.line !== selectedLine) return false
+  const filteredProducts = useMemo(() => {
     const term = searchTerm.toLowerCase()
-    if (term) {
-      return p.name?.toLowerCase().includes(term) || p.code?.toLowerCase().includes(term)
+    const filtered = products.filter((p) => {
+      if (selectedLineIsValid && p.line !== selectedLine) return false
+      if (term) {
+        return p.name?.toLowerCase().includes(term) || p.code?.toLowerCase().includes(term)
+      }
+      return true
+    })
+
+    // comprimento principal em mm, calculado uma vez por produto (null = sem medida)
+    const measureById = new Map<string, number | null>()
+    for (const p of filtered) {
+      measureById.set(p.id, extractMainLengthMm(p.details, p.specifications))
     }
-    return true
-  })
+    const byCode = (a: any, b: any) =>
+      String(a.code ?? '').localeCompare(String(b.code ?? ''), 'pt-BR')
+
+    const sorted = [...filtered]
+    switch (sortOption) {
+      case 'code-asc':
+        sorted.sort(byCode)
+        break
+      case 'code-desc':
+        sorted.sort((a, b) => byCode(b, a))
+        break
+      case 'measure-asc':
+        // numérico pelo comprimento principal; produtos sem medida vão para o fim
+        sorted.sort((a, b) => {
+          const ma = measureById.get(a.id) ?? null
+          const mb = measureById.get(b.id) ?? null
+          if (ma == null && mb == null) return byCode(a, b)
+          if (ma == null) return 1
+          if (mb == null) return -1
+          return ma - mb || byCode(a, b)
+        })
+        break
+      case 'measure-desc':
+        sorted.sort((a, b) => {
+          const ma = measureById.get(a.id) ?? null
+          const mb = measureById.get(b.id) ?? null
+          if (ma == null && mb == null) return byCode(a, b)
+          if (ma == null) return 1
+          if (mb == null) return -1
+          return mb - ma || byCode(a, b)
+        })
+        break
+    }
+    return sorted
+  }, [products, selectedLineIsValid, selectedLine, searchTerm, sortOption])
 
   const handleSelectLine = (line: string) => {
     setSelectedLine(line)
@@ -157,6 +217,26 @@ export default function Produtos() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Ordenação */}
+        <div className="mb-6 flex items-center gap-3">
+          <span className="text-xs uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+            <ArrowDownUp className="h-3.5 w-3.5" />
+            Ordenar por
+          </span>
+          <Select value={sortOption} onValueChange={(v) => setSortOption(v as SortOption)}>
+            <SelectTrigger className="w-[220px] h-9 bg-card border-border text-foreground">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border">
+              {SORT_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} className="text-sm text-foreground">
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {products.length === 0 ? (
