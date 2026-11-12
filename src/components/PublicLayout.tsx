@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import { useCMS } from '@/hooks/use-cms'
+import FloatingWhatsApp from '@/components/FloatingWhatsApp'
 
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
@@ -190,6 +191,8 @@ export default function PublicLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
+
+      <FloatingWhatsApp />
 
       <footer className="bg-card border-t border-border py-12">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-5 gap-8">
