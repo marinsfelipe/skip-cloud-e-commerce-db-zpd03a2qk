@@ -34,6 +34,15 @@ export interface CopiedProductMeta {
   stock: number
 }
 
+/** Imagem já persistida do produto, carregada da coleção `product_images`. */
+export interface StoredProductImage {
+  id: string
+  productId: string
+  fileName: string
+  url: string
+  sortOrder: number
+}
+
 export const EMPTY_PRODUCT_FORM: ProductFormValues = {
   name: '',
   code: '',
@@ -143,6 +152,67 @@ export const copyProductImages = async (
     }
   }
   return { images, failed }
+}
+
+/** Carrega as imagens já persistidas de um produto, ordenadas (sort_order 0 = principal). */
+export const loadStoredImages = async (productId: string): Promise<StoredProductImage[]> => {
+  const records = await pb
+    .collection('product_images')
+    .getFullList({ filter: `product="${productId}"`, sort: 'sort_order,created' })
+  return records.map((rec) => ({
+    id: rec.id,
+    productId,
+    fileName: String(rec.image),
+    url: pb.files.getURL(rec, rec.image),
+    sortOrder: Number(rec.sort_order) || 0,
+  }))
+}
+
+/** Reordena as imagens persistidas de um produto para que a escolhida fique com sort_order 0. */
+export const setStoredImageAsMain = async (imageId: string): Promise<void> => {
+  const rec = await pb.collection('product_images').getOne(imageId)
+  const siblings = await pb.collection('product_images').getFullList({
+    filter: `product="${rec.product}" && id!="${imageId}"`,
+    sort: 'sort_order,created',
+  })
+  await pb.collection('product_images').update(imageId, { sort_order: 0 })
+  for (let i = 0; i < siblings.length; i++) {
+    const next = siblings[i].sort_order === 0 ? 1 : i + 1
+    if (next !== siblings[i].sort_order) {
+      await pb.collection('product_images').update(siblings[i].id, { sort_order: next })
+    }
+  }
+}
+
+/** Remove uma imagem persistida (registro em `product_images` + arquivo no storage). */
+export const deleteStoredImage = async (imageId: string): Promise<void> => {
+  await pb.collection('product_images').delete(imageId)
+}
+
+/** Envia novas imagens (upload) para um produto já existente, ao final da lista. */
+export const uploadImagesToProduct = async (
+  productId: string,
+  images: PendingImage[],
+): Promise<number> => {
+  const existing = await pb.collection('product_images').getFullList({
+    filter: `product="${productId}"`,
+    sort: '-sort_order',
+  })
+  const base = existing.length > 0 ? Math.max(0, Number(existing[0].sort_order) || 0) + 1 : 0
+  let saved = 0
+  for (let i = 0; i < images.length; i++) {
+    try {
+      const fd = new FormData()
+      fd.append('product', productId)
+      fd.append('image', images[i].file)
+      fd.append('sort_order', String(base + i))
+      await pb.collection('product_images').create(fd)
+      saved++
+    } catch {
+      // falha de uma imagem não interrompe as demais; o total salvo é retornado
+    }
+  }
+  return saved
 }
 
 /**
