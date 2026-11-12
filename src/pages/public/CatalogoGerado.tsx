@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useSeo } from '@/hooks/use-seo'
 import { fetchCatalogData } from '@/services/catalog-generator'
 import type { CatalogData } from '@/services/catalog-generator'
+import { CatalogCover } from '@/components/catalog/CatalogCover'
 import { Button } from '@/components/ui/button'
 import { Loader2, Printer, ChevronLeft, ChevronRight, X } from 'lucide-react'
 
@@ -44,7 +45,7 @@ export default function CatalogoGerado() {
   const pages = useMemo(() => {
     if (!data) return []
     const list: React.ReactNode[] = []
-    list.push(<CoverPage key="cover" data={data} />)
+    list.push(<CatalogCover key="cover" data={data} />)
     list.push(<SummaryPage key="summary" data={data} />)
 
     for (const section of data.sections) {
@@ -147,56 +148,6 @@ export default function CatalogoGerado() {
       <div className="no-print text-center pb-8 text-xs text-muted-foreground">
         Gerado automaticamente a partir dos equipamentos cadastrados — {data.totalProducts}{' '}
         produtos.
-      </div>
-    </div>
-  )
-}
-
-const CoverPage = ({ data }: { data: CatalogData }) => {
-  const { config } = data
-  const isSite = config.layout === 'site'
-  return (
-    <div
-      className={`catalog-page aspect-[1/1.414] w-full flex flex-col items-center justify-center text-center p-12 relative overflow-hidden ${
-        isSite
-          ? 'bg-zinc-900 text-zinc-100'
-          : 'bg-white text-zinc-900 border border-border shadow-xl'
-      }`}
-      style={
-        config.cover_image
-          ? {
-              backgroundImage: `url(${config.cover_image})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }
-          : undefined
-      }
-    >
-      {config.cover_image && (
-        <div className={`absolute inset-0 ${isSite ? 'bg-black/70' : 'bg-white/80'}`} />
-      )}
-      <div className="relative z-10 flex flex-col items-center">
-        <span
-          className={`font-serif text-5xl font-bold tracking-widest mb-8 ${
-            isSite ? 'text-[#D4AF37]' : 'text-zinc-900'
-          }`}
-        >
-          VITTORIO
-        </span>
-        <h1
-          className={`text-4xl md:text-5xl font-serif font-bold leading-tight mb-6 ${
-            isSite ? 'text-white' : 'text-zinc-900'
-          }`}
-        >
-          {config.title}
-        </h1>
-        <p className={`text-lg ${isSite ? 'text-zinc-300' : 'text-zinc-600'} max-w-xl`}>
-          {config.subtitle}
-        </p>
-        <div className={`mt-10 w-24 h-1 rounded-full ${isSite ? 'bg-[#D4AF37]' : 'bg-zinc-900'}`} />
-        <p className={`mt-8 text-sm ${isSite ? 'text-zinc-400' : 'text-zinc-500'}`}>
-          {config.contact_info}
-        </p>
       </div>
     </div>
   )

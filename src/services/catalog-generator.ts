@@ -23,6 +23,7 @@ export interface CatalogConfigResolved {
   subtitle: string
   contact_info: string
   cover_image: string
+  logo_url: string
 }
 
 export interface CatalogData {
@@ -42,13 +43,18 @@ const stripHtml = (html: string): string => {
 }
 
 export const fetchCatalogData = async (): Promise<CatalogData> => {
-  const [productsRes, imagesRes, configRes] = await Promise.all([
+  const [productsRes, imagesRes, configRes, logoRes] = await Promise.all([
     pb.collection('products').getFullList({ filter: 'is_deleted=false', sort: 'line,name' }),
     pb.collection('product_images').getFullList({ sort: 'sort_order,created' }),
     pb
       .collection('catalog_generator_config')
       .getList(1, 1, { sort: '-updated' })
       .catch(() => ({ items: [] as any[] })),
+    // Logo do site: a mesma configurada em Configurações (chave site_logo)
+    pb
+      .collection('settings')
+      .getFirstListItem('key="site_logo"')
+      .catch(() => null as any),
   ])
 
   const imagesByProduct = new Map<string, string>()
@@ -87,6 +93,7 @@ export const fetchCatalogData = async (): Promise<CatalogData> => {
     contact_info:
       rec.contact_info || 'contato@vittoriodesign.com.br • (21) 99045-1568 • Itaboraí - RJ',
     cover_image: rec.cover_image ? pb.files.getURL(rec, rec.cover_image) : '',
+    logo_url: logoRes?.file ? pb.files.getURL(logoRes, logoRes.file) : '',
   }
 
   return {
