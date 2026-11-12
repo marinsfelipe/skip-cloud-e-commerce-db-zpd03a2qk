@@ -60,22 +60,25 @@ export default function Produtos() {
     pb.collection('products')
       .getFullList({ filter: 'is_deleted=false', sort: '-created' })
       .then(async (res) => {
-        const productsWithImages = await Promise.all(
-          res.map(async (p) => {
-            try {
-              const images = await pb
-                .collection('product_images')
-                .getList(1, 1, { filter: `product="${p.id}"`, sort: 'sort_order' })
-              if (images.items.length > 0) {
-                p.firstImage = pb.files.getURL(images.items[0], images.items[0].image)
-              }
-            } catch {
-              // fallback
-            }
+        // Uma única query para todas as imagens: antes eram 1 request por produto
+        // (N+1), o que estourava o rate limit do backend (HTTP 429) e quebrava a
+        // listagem quando o catálogo crescia.
+        const images = await pb
+          .collection('product_images')
+          .getFullList({ sort: 'sort_order,created' })
+        const firstImageByProduct = new Map<string, string>()
+        for (const img of images) {
+          if (!firstImageByProduct.has(img.product)) {
+            firstImageByProduct.set(img.product, pb.files.getURL(img, img.image))
+          }
+        }
+        setProducts(
+          res.map((p) => {
+            const firstImage = firstImageByProduct.get(p.id)
+            if (firstImage) p.firstImage = firstImage
             return p
           }),
         )
-        setProducts(productsWithImages)
       })
       .catch(console.error)
   }, [])

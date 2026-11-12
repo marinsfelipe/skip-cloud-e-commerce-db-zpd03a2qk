@@ -25,6 +25,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = pb.authStore.onChange((_token, record) => {
       setUser(record)
     })
+
+    // Renova a sessão salva ao abrir o app: sem isso um token expirado segue
+    // "isValid" no cliente e toda escrita do painel falha (regra exige auth).
+    if (pb.authStore.isValid) {
+      pb.collection('users')
+        .authRefresh()
+        .catch(() => {
+          pb.authStore.clear()
+        })
+    }
+
     setLoading(false)
     return () => {
       unsubscribe()
