@@ -8,6 +8,7 @@ import { KeyRound, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
 import { getErrorMessage } from '@/lib/pocketbase/errors'
+import pb from '@/lib/pocketbase/client'
 
 export default function MinhaConta() {
   const [current, setCurrent] = useState('')
