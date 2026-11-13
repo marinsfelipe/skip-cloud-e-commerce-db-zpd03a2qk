@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-12T23:45:56.296Z",
+  "generatedAt": "2026-11-13T00:17:52.377Z",
   "collections": [
     {
       "name": "users",
@@ -7,9 +7,9 @@
       "apiRules": {
         "list": "@request.auth.id != ''",
         "view": "@request.auth.id != ''",
-        "create": "",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "create": "@request.auth.id != '' && @request.auth.role = 'Admin'",
+        "update": "@request.auth.id != '' && (@request.auth.id = id || @request.auth.role = 'Admin')",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'Admin' && id != @request.auth.id"
       },
       "fields": [
         {
@@ -43,7 +43,7 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["Admin", "Editor"]
+          "selectValues": ["Admin", "Editor", "Viewer"]
         },
         {
           "name": "is_active",

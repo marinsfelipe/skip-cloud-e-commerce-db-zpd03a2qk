@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select'
 import { Search, Plus, Trash2, RotateCcw, X, Edit } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { canDeleteProducts } from '@/lib/permissions'
 import {
   Dialog,
   DialogContent,
@@ -386,6 +387,7 @@ export default function Products() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    disabled={!canDeleteProducts()}
                     onClick={() => toggleSoftDelete(product.id, product.is_deleted)}
                   >
                     {product.is_deleted ? (

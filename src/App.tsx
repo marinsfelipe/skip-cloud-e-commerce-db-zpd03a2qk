@@ -29,10 +29,12 @@ import CustomPage from './pages/public/CustomPage'
 import GerarCatalogo from './pages/GerarCatalogo'
 import CadastrarProduto from './pages/CadastrarProduto'
 import CatalogoGerado from './pages/public/CatalogoGerado'
+import MinhaConta from './pages/MinhaConta'
 import NotFound from './pages/NotFound'
 import { AuthProvider } from './hooks/use-auth'
 import { GoogleAdsProvider } from './components/GoogleAdsProvider'
 import { AnalyticsTracker } from './components/AnalyticsTracker'
+import RequirePermission from './components/RequirePermission'
 
 const App = () => (
   <AuthProvider>
@@ -57,18 +59,103 @@ const App = () => (
             <Route path="/admin/reset-password" element={<ResetPassword />} />
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/admin/config-produtos" element={<Products />} />
-              <Route path="/admin/cadastrar-produto" element={<CadastrarProduto />} />
-              <Route path="/promocoes" element={<Promotions />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/midia" element={<Media />} />
-              <Route path="/logs" element={<Logs />} />
-              <Route path="/usuarios" element={<UsersPage />} />
-              <Route path="/configuracoes" element={<SettingsPage />} />
-              <Route path="/mensagens" element={<Leads />} />
-              <Route path="/cms/linhas" element={<CmsLinhas />} />
-              <Route path="/admin/paginas" element={<CustomPages />} />
-              <Route path="/admin/gerar-catalogo" element={<GerarCatalogo />} />
+              <Route
+                path="/admin/config-produtos"
+                element={
+                  <RequirePermission permission="products">
+                    <Products />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/admin/cadastrar-produto"
+                element={
+                  <RequirePermission permission="productsEdit">
+                    <CadastrarProduto />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/promocoes"
+                element={
+                  <RequirePermission permission="settings">
+                    <Promotions />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/blog"
+                element={
+                  <RequirePermission permission="settings">
+                    <Blog />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/midia"
+                element={
+                  <RequirePermission permission="settings">
+                    <Media />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/logs"
+                element={
+                  <RequirePermission permission="settings">
+                    <Logs />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/usuarios"
+                element={
+                  <RequirePermission permission="users">
+                    <UsersPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/configuracoes"
+                element={
+                  <RequirePermission permission="settings">
+                    <SettingsPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/mensagens"
+                element={
+                  <RequirePermission permission="settings">
+                    <Leads />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/cms/linhas"
+                element={
+                  <RequirePermission permission="settings">
+                    <CmsLinhas />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/admin/paginas"
+                element={
+                  <RequirePermission permission="settings">
+                    <CustomPages />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="/admin/gerar-catalogo"
+                element={
+                  <RequirePermission permission="catalog">
+                    <GerarCatalogo />
+                  </RequirePermission>
+                }
+              />
+              <Route path="/conta" element={<MinhaConta />} />
             </Route>
             <Route path="/catalogo-gerado" element={<CatalogoGerado />} />
             <Route path="*" element={<NotFound />} />

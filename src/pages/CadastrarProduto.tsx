@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { Copy, Pencil, Plus, RotateCcw, Save } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { canDeleteProducts } from '@/lib/permissions'
 import { CopiarProdutoDialog } from '@/components/CopiarProdutoDialog'
 import { ProductImagesEditor } from '@/components/ProductImagesEditor'
 import {
@@ -165,7 +166,16 @@ export default function CadastrarProduto() {
   }
 
   const handleRemoveStored = async (imageId: string) => {
-    if (!editingId) return
+    if (!editingId || !canDeleteProducts()) {
+      if (!canDeleteProducts()) {
+        toast({
+          variant: 'destructive',
+          title: 'Sem permissão',
+          description: 'Apenas administradores podem remover imagens.',
+        })
+      }
+      return
+    }
     try {
       await deleteStoredImage(imageId)
       setStoredImages((prev) => prev.filter((img) => img.id !== imageId))

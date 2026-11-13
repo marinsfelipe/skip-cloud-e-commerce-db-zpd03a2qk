@@ -30,10 +30,13 @@ export default function AdminLogin() {
         description: 'Bem-vindo ao Vittorio Design.',
       })
     } else {
+      const message = (error as { message?: string })?.message?.includes('desativada')
+        ? 'Esta conta está desativada. Fale com o administrador.'
+        : 'Credenciais inválidas.'
       toast({
         variant: 'destructive',
         title: 'Erro de autenticação',
-        description: 'Credenciais inválidas.',
+        description: message,
       })
     }
   }

@@ -27,6 +27,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/hooks/use-auth'
+import { roleLabel } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -35,6 +36,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { KeyRound } from 'lucide-react'
 import { useEffect } from 'react'
 import {
   Breadcrumb,
@@ -45,20 +48,43 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-const MENU_ITEMS = [
-  { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard' },
-  { title: 'Mensagens / Leads', icon: MessageSquare, url: '/mensagens' },
-  { title: 'Config. Produtos', icon: Package, url: '/admin/config-produtos' },
-  { title: 'Cadastrar Produto', icon: PackagePlus, url: '/admin/cadastrar-produto' },
-  { title: 'Promoções', icon: Tag, url: '/promocoes' },
-  { title: 'Páginas', icon: Files, url: '/admin/paginas' },
-  { title: 'Blog', icon: FileText, url: '/blog' },
-  { title: 'Mídia', icon: ImageIcon, url: '/midia' },
-  { title: 'Gerar Catálogo', icon: BookOpen, url: '/admin/gerar-catalogo' },
-  { title: 'Usuários', icon: UsersIcon, url: '/usuarios' },
-  { title: 'Logs', icon: ScrollText, url: '/logs' },
-  { title: 'Configurações', icon: Settings, url: '/configuracoes' },
+const MENU_ITEMS: {
+  title: string
+  icon: typeof LayoutDashboard
+  url: string
+  permission: 'products' | 'productsEdit' | 'users' | 'settings' | 'catalog'
+}[] = [
+  { title: 'Dashboard', icon: LayoutDashboard, url: '/dashboard', permission: 'products' },
+  { title: 'Mensagens / Leads', icon: MessageSquare, url: '/mensagens', permission: 'settings' },
+  {
+    title: 'Config. Produtos',
+    icon: Package,
+    url: '/admin/config-produtos',
+    permission: 'products',
+  },
+  {
+    title: 'Cadastrar Produto',
+    icon: PackagePlus,
+    url: '/admin/cadastrar-produto',
+    permission: 'productsEdit',
+  },
+  { title: 'Promoções', icon: Tag, url: '/promocoes', permission: 'settings' },
+  { title: 'Páginas', icon: Files, url: '/admin/paginas', permission: 'settings' },
+  { title: 'Blog', icon: FileText, url: '/blog', permission: 'settings' },
+  { title: 'Mídia', icon: ImageIcon, url: '/midia', permission: 'settings' },
+  { title: 'Gerar Catálogo', icon: BookOpen, url: '/admin/gerar-catalogo', permission: 'catalog' },
+  { title: 'Usuários', icon: UsersIcon, url: '/usuarios', permission: 'users' },
+  { title: 'Logs', icon: ScrollText, url: '/logs', permission: 'settings' },
+  { title: 'Configurações', icon: Settings, url: '/configuracoes', permission: 'settings' },
 ]
+
+const roleCan = (permission: string, role: string | undefined): boolean => {
+  if (role === 'Admin') return true
+  if (role === 'Editor') {
+    return permission === 'products' || permission === 'productsEdit' || permission === 'catalog'
+  }
+  return permission === 'products' || permission === 'catalog'
+}
 
 export default function Layout() {
   const { isAuthenticated, user, logout } = useAuth()
@@ -75,7 +101,8 @@ export default function Layout() {
     return null
   }
 
-  const activeItem = MENU_ITEMS.find((i) => i.url === location.pathname)
+  const visibleItems = MENU_ITEMS.filter((i) => roleCan(i.permission, user?.role))
+  const activeItem = visibleItems.find((i) => i.url === location.pathname)
 
   const handleLogout = () => {
     logout()
@@ -95,7 +122,7 @@ export default function Layout() {
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {MENU_ITEMS.map((item) => (
+                  {visibleItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
@@ -156,6 +183,13 @@ export default function Layout() {
                   <DropdownMenuItem className="flex-col items-start gap-1 p-3">
                     <p className="text-sm font-medium leading-none">{user?.name}</p>
                     <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                    <Badge variant="outline" className="mt-1 font-normal">
+                      {roleLabel(user?.role)}
+                    </Badge>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/conta')} className="cursor-pointer">
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    <span>Minha Conta</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleLogout}

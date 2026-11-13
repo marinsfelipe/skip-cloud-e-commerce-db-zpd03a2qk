@@ -44,7 +44,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password?: string) => {
     try {
-      await pb.collection('users').authWithPassword(email, password || 'Skip@Pass')
+      const auth = await pb.collection('users').authWithPassword(email, password || 'Skip@Pass')
+
+      // Defesa extra no cliente: usuários desativados não permanecem logados
+      // (o servidor já recusa o login via hook onRecordAuthRequest).
+      if (auth.record && (auth.record as any).is_active === false) {
+        pb.authStore.clear()
+        return { error: { message: 'Esta conta está desativada. Fale com o administrador.' } }
+      }
       return { error: null }
     } catch (error) {
       return { error }
